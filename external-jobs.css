@@ -7,8 +7,6 @@
     --text-muted: #94a3b8;
     --border-color: rgba(255, 255, 255, 0.05);
     --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    --sidebar-width: 250px;
-    --sidebar-collapsed: 80px;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -279,27 +277,6 @@
 .posted-date {
     font-size: 0.75rem;
     color: var(--text-muted);
-}
-
-/* RESPONSIVE */
-@media (max-width: 1024px) {
-    .sidebar {
-        width: var(--sidebar-collapsed);
-        padding: 24px 8px;
-    }
-
-    .brand span,
-    .nav-item span,
-    .nav-label,
-    .sidebar-footer p,
-    .username {
-        display: none;
-    }
-
-    .nav-item {
-        justify-content: center;
-        padding: 12px;
-    }
 }
 
 @media (max-width: 768px) {
