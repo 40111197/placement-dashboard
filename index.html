@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — Placement Monitor Dashboard</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Segoe UI, sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            background: #162337;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* MAIN CONTAINER */
+
+        .container {
+            display: flex;
+            width: 900px;
+            height: 500px;
+            background: #111f33;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+        }
+
+        /* LEFT SIDE */
+
+        .left {
+            flex: 1;
+            background: linear-gradient(160deg, #0b1a2a, #07121e);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            padding: 40px;
+        }
+
+        .logo {
+            width: 140px;
+            margin-bottom: 8px;
+        }
+
+        .left h1 {
+            font-size: 28px;
+            color: #ffffff;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .left p {
+            font-size: 14px;
+            margin-top: 5px;
+            opacity: 1;
+        }
+
+        /* RIGHT SIDE */
+
+        .right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 50px;
+            background: #0f2236;
+        }
+
+        .right h2 {
+            color: white;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* INPUT BOX */
+
+        .input-box {
+            margin-bottom: 20px;
+        }
+
+        .input-box input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            background: #1b344d;
+            color: white;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        /* INPUT HOVER EFFECT */
+
+        .input-box input:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .input-box input:focus {
+            transform: translateY(-4px);
+            box-shadow: 0 0 8px rgba(255, 140, 0, 0.6);
+        }
+
+        /* LOGIN BUTTON */
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #ff8c00;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0 12px rgba(255, 140, 0, 0.7);
+            background: #ffa733;
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        /* EXTRA LINKS */
+
+        .extra {
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .extra a {
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        /* ERROR / STATUS */
+        .error-msg {
+            background: rgba(239,68,68,0.15);
+            border: 1px solid rgba(239,68,68,0.5);
+            color: #ffffff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .error-msg.show { display: block; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="left">
+
+            <img src="https://rise.rru.ac.in/img/home-9/hero/RRU-Logo.png" class="logo">
+
+            <h1>Placement Monitor Dashboard</h1>
+
+            <p>Future Leaders and Security Intelligence</p>
+
+        </div>
+
+
+        <div class="right">
+
+            <h2>Login</h2>
+
+            <form id="loginForm">
+
+                <div id="errorMsg" class="error-msg"></div>
+
+                <div class="input-box">
+                    <input type="text" id="username" placeholder="Username or Email" required autocomplete="username">
+                </div>
+
+                <div class="input-box">
+                    <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
+                </div>
+
+                <button type="submit" id="loginBtn">Login</button>
+
+                <div class="extra">
+                    <span style="color:#aaa;font-size:12px">Default: admin / Admin@123</span>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- CDN: Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- CDN: SheetJS for Excel import/export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Supabase config (change this when you move servers) -->
+    <script src="supabase-client.js"></script>
+    <!-- Data layer -->
+    <script src="security.js"></script>
+    <script src="api.js?v=400"></script>
+    <script>
+        // If already logged in, redirect to dashboard
+        if (localStorage.getItem('pd_user')) {
+            window.location.href = 'dashboard.html';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const errorMsg = document.getElementById('errorMsg');
+            const loginBtn = document.getElementById('loginBtn');
+
+            // A07: Rate Limiting Check
+            const lockout = isLoginLockedOut();
+            if (lockout.locked) {
+                const remaining = Math.ceil(lockout.remainingMs / 60000);
+                errorMsg.textContent = `Too many failed attempts. Locked out for ${remaining} more minutes.`;
+                errorMsg.classList.add('show');
+                return;
+            }
+
+            errorMsg.classList.remove('show');
+            if (!username || !password) {
+                errorMsg.textContent = 'Please enter username and password.';
+                errorMsg.classList.add('show');
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in…';
+
+            try {
+                const res = await apiLogin(username, password);
+                
+                // Clear attempts on success
+                if (typeof clearLoginAttempts === 'function') clearLoginAttempts();
+
+                if (res.requires_2fa) {
+                    window.location.href = 'mfa.html';
+                } else {
+                    window.location.href = 'dashboard.html';
+                }
+            } catch (err) {
+                // A07: Record failed attempt
+                if (typeof recordLoginAttempt === 'function') {
+                    const result = recordLoginAttempt();
+                    if (result.locked) {
+                        errorMsg.textContent = 'Too many failed attempts. You have been locked out for 15 minutes.';
+                    } else {
+                        errorMsg.textContent = `${err.message || 'Login failed.'} (${result.attemptsLeft} attempts remaining)`;
+                    }
+                } else {
+                    errorMsg.textContent = err.message || 'Login failed. Please try again.';
+                }
+                
+                errorMsg.classList.add('show');
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Login';
+            }
+        });
+    </script>
+
+</body>
+
+</html>

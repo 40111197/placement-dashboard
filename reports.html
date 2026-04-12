@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https: data:; script-src 'self' 'unsafe-inline' https://d3js.org https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; img-src 'self' https: data: blob: *; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://raw.githubusercontent.com; frame-ancestors 'none';">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Placement Monitor Dashboard</title>
+    <script src="device-tracker.js?v=101"></script>
+    <script src="auth-guard.js?v=3"></script>
+    <!-- CDN: Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- CDN: SheetJS for Excel import/export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Supabase config (change only this file when moving to a new host) -->
+    <script src="supabase-client.js"></script>
+    <script src="api.js?v=400"></script>
+    <script src="security.js?v=400"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highcharts@11/highcharts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highcharts@11/highcharts-3d.js"></script>
+    <!-- Using Chart.js for consistent charting & Highcharts 3D for Org breakdown -->
+    <link rel="stylesheet" href="styles.css?v=410">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+
+<body>
+    <!-- TOP NAVIGATION BAR -->
+        <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="https://upload.wikimedia.org/wikipedia/en/b/bc/Rashtriya_Raksha_University_logo.png" alt="RRU Logo">
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="sidebar-link"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a>
+            <a href="students.html" class="sidebar-link"><i class="bi bi-people-fill"></i> <span>Students</span></a>
+            <a href="internships.html" class="sidebar-link"><i class="bi bi-person-workspace"></i> <span>Internships</span></a>
+            <a href="field-visits.html" class="sidebar-link"><i class="bi bi-pin-map-fill"></i> <span>Field Visits</span></a>
+            <a href="industrial-visits.html" class="sidebar-link"><i class="bi bi-buildings-fill"></i> <span>Industrial Visits</span></a>
+            <a href="placements.html" class="sidebar-link"><i class="bi bi-briefcase-fill"></i> <span>Placements</span></a>
+            <a href="external-jobs.html" class="sidebar-link"><i class="bi bi-globe"></i> <span>External Jobs (OSINT)</span></a>
+            <a href="reports.html" class="sidebar-link active"><i class="bi bi-bar-chart-fill"></i> <span>Reports</span></a>
+            <a href="settings.html" class="sidebar-link"><i class="bi bi-gear-fill"></i> <span>Settings</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="avatar">A</div>
+                <div class="user-info">
+                    <div class="name">admin@rru.ac.in</div>
+                    <div class="role">Admin</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="dashboard-layout-container">
+        <!-- TOP HEADER ROW -->
+
+            <div class="top-header-row">
+                <div>
+                    <h1>Statistical Reports</h1>
+                </div>
+                <div class="header-actions-unified">
+                    <input type="text" class="search-bar-unified" placeholder="Search reports...">
+                    <button class="select-unified" onclick="window.print()" style="width: auto; padding: 10px 15px;">
+                        <i class="bi bi-printer"></i> Print Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="stats-grid-4">
+                <div class="stat-card-new">
+                    <div class="card-icon" style="color: var(--accent-blue);">👥</div>
+                    <div class="card-label">Total Students</div>
+                    <div class="card-value" id="rpt-total">0</div>
+                    <div class="card-label" id="rpt-placed-pct" style="text-transform: none; font-size: 10px;">0% Placed
+                    </div>
+                    <div class="accent-line" style="background: var(--accent-blue);"></div>
+                </div>
+
+                <div class="stat-card-new">
+                    <div class="card-icon" style="color: var(--accent-green);"><i class="bi bi-graph-up-arrow" style="color: var(--accent-green);"></i></div>
+                    <div class="card-label">Placement Rate <span id="rpt-batch-label" style="font-size:10px;opacity:0.6;">(—)</span></div>
+                    <div class="card-value" id="rpt-placed-pct-main" style="color: var(--accent-green);">0%</div>
+                    <div id="rpt-placed-count" style="font-size:11px;color:#8b949e;margin-top:2px;">0 placed / 0 opted</div>
+                    <div class="accent-line" style="background: var(--accent-green);"></div>
+                </div>
+
+                <div class="stat-card-new">
+                    <div class="card-icon" style="color: var(--accent-purple);">🤝</div>
+                    <div class="card-label">Internships</div>
+                    <div class="card-value" id="rpt-internships">0</div>
+                    <div class="card-label" style="text-transform: none; font-size: 10px;">Active internships</div>
+                    <div class="accent-line" style="background: var(--accent-purple);"></div>
+                </div>
+
+                <div class="stat-card-new">
+                    <div class="card-icon" style="color: var(--accent-orange);">📍</div>
+                    <div class="card-label">Field Visits</div>
+                    <div class="card-value" id="rpt-field-visits">0</div>
+                    <div class="card-label" style="text-transform: none; font-size: 10px;">Org engagement</div>
+                    <div class="accent-line" style="background: var(--accent-orange);"></div>
+                </div>
+
+                <div class="stat-card-new">
+                    <div class="card-icon" style="color: #f59e0b;">🏭</div>
+                    <div class="card-label">Industrial Visits</div>
+                    <div class="card-value" id="rpt-industrial-visits">0</div>
+                    <div class="card-label" style="text-transform: none; font-size: 10px;">Industry exposure</div>
+                    <div class="accent-line" style="background: #f59e0b;"></div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-section" style="grid-template-columns: 1fr 1fr;">
+
+                <!-- Pie + Doughnut: side by side -->
+                <div style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="widget-panel" style="margin-bottom: 0;">
+                        <h3>Programme-wise Student Count</h3>
+                        <div class="chart-container">
+                            <canvas id="studentProgrammeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="widget-panel" style="margin-bottom: 0;">
+                        <h3>Programme-wise Internship Count</h3>
+                        <div class="chart-container">
+                            <canvas id="internshipProgrammeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Government vs Private: full width -->
+                <div class="widget-panel" style="grid-column: span 2;">
+                    <h3>Government vs Private Visits</h3>
+                    <div class="chart-container">
+                        <canvas id="fieldVisitAreaChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Placed vs Non-Placed: full width -->
+                <div class="widget-panel" style="grid-column: span 2;">
+                    <h3>Placed vs Non-Placed by Programme</h3>
+                    <div class="chart-container">
+                        <canvas id="placedNonProgrammeChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Yearly Activity Trend: full width -->
+                <div class="widget-panel" style="grid-column: span 2;">
+                    <h3>Yearly Activity Count &nbsp;<small style="font-size:11px;color:#555;font-weight:400;">Internships · Field Visits · Industrial Visits</small></h3>
+                    <div class="chart-container" style="height:280px;">
+                        <canvas id="yearlyActivityChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 3D Org-Type Pie and Legend: Combined into one Card -->
+                <div class="widget-panel" style="grid-column: span 2;">
+                    <h3>Organisation Type Breakdown &nbsp;<small style="font-size:11px;color:#555;font-weight:400;">Internships</small></h3>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 10px;">
+                        <!-- Top: Chart -->
+                        <div class="chart-container" style="width: 100%; height:320px; overflow:visible; display:flex; align-items:center; justify-content:center;">
+                            <div id="orgTypePieChart" style="width:100%;height:100%;"></div>
+                        </div>
+                        <!-- Bottom: The Horizontal Legend -->
+                        <div id="orgTypeLegendPanel" style="width: 100%; padding: 10px 0;">
+                            <!-- Legend content populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metrics Section -->
+                <div class="widget-panel" style="margin-bottom: 0;">
+                    <h3>Key Metrics</h3>
+                    <div class="metrics-section" style="margin-top: 20px;">
+                        <div class="metric-row">
+                            <span class="metric-label">Highest Package</span>
+                            <span class="metric-value success" id="km-highest"> </span>
+                        </div>
+
+                        <div class="metric-row">
+                            <span class="metric-label">Average Package</span>
+                            <span class="metric-value" id="km-avg" style="color: #f59e0b;"> </span>
+                        </div>
+
+                        <div class="metric-row">
+                            <span class="metric-label">Lowest Package</span>
+                            <span class="metric-value" id="km-lowest" style="color: #ef4444;"> </span>
+                        </div>
+
+                        <div class="metric-row">
+                            <span class="metric-label">Total Internships</span>
+                            <span class="metric-value success" id="km-internships"> </span>
+                        </div>
+
+                        <div class="metric-row">
+                            <span class="metric-label">Active Companies</span>
+                            <span class="metric-value" id="km-companies"> </span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+                <!-- FOOTER -->
+                            <footer class="app-footer"
+                style="padding: 40px 0; border-top: 1px solid var(--border); margin-top: 30px;">
+                <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 40px;">
+                    <div>
+                        <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Rashtriya Raksha University</h3>
+                        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.8;">Puducherry Campus, Pondicherry
+                            Institute of Hotel Management & Catering Technology [PIHMCT]<br>Opp To Mahalakshmi Nagar,
+                            Murungapakkam, Puducherry – 605004</p>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Contact</h3>
+                        <p style="font-size: 12px; color: var(--text-muted);">Email: pulse-r24@rru.ac.in</p>
+                        <p style="font-size: 12px; color: var(--text-muted);">Phone: +91 79 XXXXXXXX</p>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Follow</h3>
+                        <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
+                                style="color: inherit; text-decoration: none;">Instagram</a></p>
+                        <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
+                                style="color: inherit; text-decoration: none;">LinkedIn</a></p>
+                    </div>
+                </div>
+            </footer>
+
+        </div>
+        <script src="script.js?v=17"></script>
+        <script>
+            (function () {
+                let reportData = {
+                    stats: null,
+                    studentsRaw: [],
+                    placements: [],
+                    internships: [],
+                    fieldVisits: [],
+                    industrialVisits: []
+                };
+
+                async function load() {
+                    try {
+                        const [stats, studentsRaw, placements, internships, fieldVisits, industrialVisits, acYearRate] = await Promise.all([
+                            getStats().catch(() => ({ total_students: 0, placed_students: 0, total_companies: 0, total_internships: 0 })),
+                            getStudents().catch(() => []),
+                            getPlacements().catch(() => []),
+                            getInternships().catch(() => []),
+                            getFieldVisits().catch(() => []),
+                            getIndustrialVisits().catch(() => []),
+                            getAcademicYearPlacementRate().catch(() => null)
+                        ]);
+
+                        reportData = { stats, studentsRaw, placements, internships, fieldVisits, industrialVisits };
+
+                        await updateStats();
+                        await renderCharts();
+
+                        // ── Academic-year placement rate card (runs LAST so it is not overwritten) ──
+                        const rateEl   = document.getElementById('rpt-placed-pct-main');
+                        const batchEl  = document.getElementById('rpt-batch-label');
+                        const detailEl = document.getElementById('rpt-placed-count');
+                        if (acYearRate) {
+                            if (rateEl)   rateEl.textContent   = acYearRate.opted > 0 ? `${acYearRate.rate}%` : 'N/A';
+                            if (batchEl)  batchEl.textContent  = `(${acYearRate.batchLabel})`;
+                            if (detailEl) detailEl.textContent = acYearRate.opted > 0
+                                ? `${acYearRate.placed} placed / ${acYearRate.opted} opted`
+                                : `No opted students for ${acYearRate.batchLabel}`;
+                        } else {
+                            if (rateEl)   rateEl.textContent   = 'N/A';
+                            if (detailEl) detailEl.textContent = 'Data unavailable';
+                        }
+
+                    } catch (e) {
+                        console.error('Reports load failed:', e);
+                    }
+                }
+
+                async function updateStats() {
+                    const { stats, studentsRaw, placements, internships, fieldVisits, industrialVisits } = reportData;
+
+                    let totalStudents = stats.total_students;
+                    if (totalStudents === 0 || isNaN(totalStudents)) {
+                        const uniqueIds = new Set([
+                            ...placements.map(x => x.enrollment_number || x.id),
+                            ...internships.map(x => x.enrollment_number || x.id)
+                        ].filter(Boolean));
+                        totalStudents = uniqueIds.size || studentsRaw.length || 0;
+                    }
+
+                    // Identify passed-out students (admitted_year < current calendar year)
+                    const currentYear = new Date().getFullYear();
+                    const passedOutStudents = studentsRaw.filter(s => {
+                        const yr = parseInt(String(s.admitted_year || '').trim());
+                        return !isNaN(yr) && yr < currentYear;
+                    });
+
+                    // Passed-out students who enrolled for placement
+                    const passedOutOpted = passedOutStudents.filter(s =>
+                        String(s.opted_for_placement || '').toLowerCase() === 'yes'
+                    );
+
+                    // Passed-out students who actually have a placement record
+                    const placementEnrollments = new Set(placements.map(p => String(p.enrollment_number).trim()));
+                    const placedStudents = passedOutStudents.filter(s =>
+                        placementEnrollments.has(String(s.enrollment_number).trim())
+                    ).length;
+
+                    // Formula: placed passouts ÷ opted passouts × 100
+                    const placementRate = passedOutOpted.length > 0
+                        ? Math.round((placedStudents / passedOutOpted.length) * 100)
+                        : 0;
+
+                    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+
+                    const admittedYears = studentsRaw.map(s => parseInt(String(s.admitted_year || '').trim())).filter(y => !isNaN(y));
+                    const maxYear = admittedYears.length ? Math.max(...admittedYears) : new Date().getFullYear();
+
+                    set('rpt-total', totalStudents);
+                    // NOTE: rpt-placed-pct-main and rpt-placed-count are owned by
+                    // getAcademicYearPlacementRate() — do NOT set them here.
+                    set('rpt-companies', stats.total_companies || new Set(placements.map(p => p.company)).size);
+                    set('rpt-field-visits', fieldVisits.length);
+                    set('rpt-industrial-visits', (industrialVisits || []).length);
+                    set('rpt-internships', (internships || []).length);
+
+                    const parseLPA = (s) => {
+                        let num = parseFloat(String(s || '').replace(/[^\d.]/g, '')) || 0;
+                        if (num > 1000) {
+                            num = num / 100000; // Convert raw rupees (e.g., 600000) to LPA (e.g., 6)
+                        }
+                        return num;
+                    };
+                    const salaries = placements.map(p => parseLPA(p.ctc || p.package || 0)).filter(s => s > 0);
+                    const avg = salaries.length ? (salaries.reduce((a, b) => a + b, 0) / salaries.length) : 0;
+                    const highest = salaries.length ? Math.max(...salaries) : 0;
+                    const lowest = salaries.length ? Math.min(...salaries) : 0;
+
+                    set('km-highest', highest > 0 ? highest.toFixed(1) + ' LPA' : 'N/A');
+                    set('km-avg', avg > 0 ? avg.toFixed(1) + ' LPA' : 'N/A');
+                    set('km-lowest', lowest > 0 ? lowest.toFixed(1) + ' LPA' : 'N/A');
+                    set('km-unplaced', Math.max(0, totalStudents - placedStudents));
+                    set('km-internships', (internships || []).length);
+
+                    const activeCompanies = new Set(placements.map(p => p.company_name || p.company).filter(Boolean)).size;
+                    set('km-companies', activeCompanies);
+                }
+
+                async function renderCharts() {
+                    const { placements, internships, fieldVisits, industrialVisits, studentsRaw } = reportData;
+                    try {
+                        const destroy = (id) => { if (window[id]) window[id].destroy(); };
+                        const activePlacements = new Set(placements.map(p => String(p.enrollment_number).trim()));
+
+                        // 1. Placement Status
+                        const ctx1 = document.getElementById('placementStatusChart');
+                        if (ctx1) {
+                            destroy('_statusChart');
+                            window._statusChart = new Chart(ctx1, {
+                                type: 'doughnut',
+                                data: {
+                                    labels: ['Placed', 'Not Placed'],
+                                    datasets: [{
+                                        data: [placements.length, Math.max(0, studentsRaw.length - placements.length)],
+                                        backgroundColor: ['#22c55e', '#ef4444'], borderWidth: 0
+                                    }]
+                                },
+                                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#aaa' } } } }
+                            });
+                        }
+
+                        // 2. Programme-wise Placement
+                        const ctx2 = document.getElementById('deptPlacementChart');
+                        if (ctx2) {
+                            const map = {};
+                            placements.forEach(p => { const d = p.course || p.programme || 'Other'; map[d] = (map[d] || 0) + 1; });
+                            destroy('_deptChart');
+                            window._deptChart = new Chart(ctx2, {
+                                type: 'bar',
+                                data: {
+                                    labels: Object.keys(map),
+                                    datasets: [{ label: 'Placed', data: Object.values(map), backgroundColor: '#3b82f6' }]
+                                },
+                                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+                            });
+                        }
+
+                        // 3. Programme-wise Student Count (Pie)
+                        const ctx3 = document.getElementById('studentProgrammeChart');
+                        if (ctx3) {
+                            const map = {};
+                            const deptStats = {};
+                            studentsRaw.forEach(s => {
+                                const p = s.programme || 'Other';
+                                map[p] = (map[p] || 0) + 1;
+
+                                if (!deptStats[p]) deptStats[p] = { total: 0, placed: 0 };
+                                deptStats[p].total++;
+                                if (activePlacements.has(String(s.enrollment_number).trim())) deptStats[p].placed++;
+                            });
+
+                            const barsEl = document.getElementById('deptBars');
+                            if (barsEl) {
+                                const deptLabels = Object.keys(deptStats);
+                                const max = Math.max(...deptLabels.map(l => deptStats[l].total), 1);
+                                barsEl.innerHTML = deptLabels.map(d => `
+                                    <div class="dept-item" style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                                        <span class="dept-name" style="width: 30%; font-size: 11px; font-weight: 600; color: #cbd5e1; text-transform: uppercase;">${d}</span>
+                                        <div class="dept-bar" style="flex: 1; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; position: relative;">
+                                            <div class="dept-bar-fill" style="width:${(deptStats[d].total / max * 100).toFixed(0)}%; height: 100%; background: #3b82f6; border-radius: 4px;"></div>
+                                        </div>
+                                        <span class="dept-count" style="width: 25%; font-size: 11px; text-align: right; color: #a1a1aa; font-weight: 600;">${deptStats[d].placed}/${deptStats[d].total} Placed</span>
+                                    </div>`).join('');
+                            }
+
+                            destroy('_spChart');
+                            window._spChart = new Chart(ctx3, {
+                                type: 'pie',
+                                data: {
+                                    labels: Object.keys(map),
+                                    datasets: [{ data: Object.values(map), backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'] }]
+                                },
+                                options: { responsive: true, maintainAspectRatio: false }
+                            });
+                        }
+
+                        // 4. Programme-wise Internship Count (Doughnut)
+                        const ctx4 = document.getElementById('internshipProgrammeChart');
+                        if (ctx4) {
+                            const map = {};
+                            internships.forEach(i => {
+                                const p = i.programme || i.course || i.program_name || 'Other';
+                                if (p) map[p] = (map[p] || 0) + 1;
+                            });
+                            const labels = Object.keys(map);
+                            const values = Object.values(map);
+
+                            if (!labels.length) {
+                                // Show "no data" placeholder inside the card
+                                const parent = ctx4.parentElement;
+                                ctx4.style.display = 'none';
+                                if (!parent.querySelector('.no-data-msg')) {
+                                    const msg = document.createElement('div');
+                                    msg.className = 'no-data-msg';
+                                    msg.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;color:#555;font-size:13px;';
+                                    msg.textContent = 'No internship data available';
+                                    parent.appendChild(msg);
+                                }
+                            } else {
+                                ctx4.style.display = '';
+                                const old = ctx4.parentElement.querySelector('.no-data-msg');
+                                if (old) old.remove();
+                                destroy('_ipChart');
+                                window._ipChart = new Chart(ctx4, {
+                                    type: 'doughnut',
+                                    data: {
+                                        labels,
+                                        datasets: [{ data: values, backgroundColor: ['#ec4899', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'] }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        cutout: '60%',
+                                        plugins: { legend: { position: 'bottom', labels: { color: '#8b949e', padding: 12, font: { size: 11 } } } }
+                                    }
+                                });
+                            }
+                        }
+
+                        // Field Visits by Program
+                        const ctxFV = document.getElementById('fieldVisitChart');
+                        if (ctxFV) {
+                            const mapFV = {};
+                            fieldVisits.forEach(v => { const p = v.program_name || v.programme || v.course || 'Other'; mapFV[p] = (mapFV[p] || 0) + 1; });
+                            destroy('_fvChart');
+                            window._fvChart = new Chart(ctxFV, {
+                                type: 'bar',
+                                data: {
+                                    labels: Object.keys(mapFV),
+                                    datasets: [{ label: 'Field Visits', data: Object.values(mapFV), backgroundColor: '#f59e0b' }]
+                                },
+                                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+                            });
+                        }
+
+                        // 5. Government vs Private Visits (Area/Line)
+                        const ctx5 = document.getElementById('fieldVisitAreaChart');
+                        if (ctx5) {
+                            const getYear = dateStr => {
+                                if (!dateStr) return 'Unknown';
+                                const parsed = String(dateStr).trim();
+                                const parts = parsed.split(/[-\/\.]/);
+                                if (!parts || parts.length === 0) return 'Unknown';
+                                if (parts[0].length === 4) return parts[0];
+                                if (parts.length >= 3 && parts[2].length === 4) return parts[2];
+                                return 'Unknown';
+                            };
+
+                            const govVisits = fieldVisits.map(v => ({ ...v, parsedYear: getYear(v.visited_date || v.visit_date) }));
+                            const privVisits = industrialVisits.map(v => ({ ...v, parsedYear: getYear(v.visited_date || v.visit_date) }));
+
+                            const years = [...new Set([...govVisits, ...privVisits].map(v => v.parsedYear).filter(y => y !== 'Unknown'))].sort();
+
+                            destroy('_areaChart');
+                            window._areaChart = new Chart(ctx5, {
+                                type: 'line',
+                                data: {
+                                    labels: years,
+                                    datasets: [
+                                        { label: 'Government', data: years.map(y => govVisits.filter(v => v.parsedYear === y).length), borderColor: '#3b82f6', fill: true, backgroundColor: 'rgba(59, 130, 246, 0.1)', tension: 0.4 },
+                                        { label: 'Private', data: years.map(y => privVisits.filter(v => v.parsedYear === y).length), borderColor: '#f59e0b', fill: true, backgroundColor: 'rgba(245, 158, 11, 0.1)', tension: 0.4 }
+                                    ]
+                                },
+                                options: { responsive: true, maintainAspectRatio: false }
+                            });
+                        }
+
+                        // 6. Placed vs Non-Placed (Grouped Bar - Batchwise Programme)
+                        const ctx6 = document.getElementById('placedNonProgrammeChart');
+                        if (ctx6) {
+                            const getLabel = s => {
+                                const prog = s.programme || 'Other';
+                                const batch = s.batch ? ` (${s.batch})` : '';
+                                return prog + batch;
+                            };
+                            const labels = [...new Set(studentsRaw.map(s => getLabel(s)))].sort();
+                            destroy('_pnChart');
+                            window._pnChart = new Chart(ctx6, {
+                                type: 'bar',
+                                data: {
+                                    labels: labels,
+                                    datasets: [
+                                        { label: 'Placed', data: labels.map(l => studentsRaw.filter(s => getLabel(s) === l && activePlacements.has(String(s.enrollment_number).trim())).length), backgroundColor: '#22c55e' },
+                                        { label: 'Unplaced', data: labels.map(l => studentsRaw.filter(s => getLabel(s) === l && !activePlacements.has(String(s.enrollment_number).trim())).length), backgroundColor: '#ef4444' }
+                                    ]
+                                },
+                                options: { responsive: true, maintainAspectRatio: false }
+                            });
+                        }
+
+                        // 7. Yearly Activity Grouped Bar
+                        const ctxYA = document.getElementById('yearlyActivityChart');
+                        if (ctxYA) {
+                            const getYear = d => {
+                                if (!d) return null;
+                                const s = String(d).trim();
+                                const p = s.split(/[-\/\.]/);
+                                if (p[0].length === 4) return p[0];
+                                if (p.length >= 3 && p[2].length === 4) return p[2];
+                                return null;
+                            };
+                            const iYears  = internships.map(i => i.year || getYear(i.created_at)).filter(Boolean);
+                            const fvYears = fieldVisits.map(v => getYear(v.visited_date || v.visit_date || v.date)).filter(Boolean);
+                            const ivYears = industrialVisits.map(v => getYear(v.visited_date || v.visit_date || v.date)).filter(Boolean);
+                            const allYears = [...new Set([...iYears, ...fvYears, ...ivYears])].sort();
+
+                            if (!allYears.length) {
+                                ctxYA.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#555;font-size:13px;">No yearly data available</div>';
+                            } else {
+                                const cnt = arr => allYears.map(y => arr.filter(x => x === y).length);
+                                destroy('_yaChart');
+                                window._yaChart = new Chart(ctxYA, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: allYears,
+                                        datasets: [
+                                            { label: 'Internships',       data: cnt(iYears),  backgroundColor: 'rgba(59,130,246,0.85)',  borderRadius: 6 },
+                                            { label: 'Field Visits',      data: cnt(fvYears), backgroundColor: 'rgba(245,158,11,0.85)', borderRadius: 6 },
+                                            { label: 'Industrial Visits', data: cnt(ivYears), backgroundColor: 'rgba(139,92,246,0.85)', borderRadius: 6 }
+                                        ]
+                                    },
+                                    options: {
+                                        responsive: true, maintainAspectRatio: false,
+                                        plugins: { legend: { position: 'top', labels: { color: '#8b949e', padding: 16 } } },
+                                        scales: {
+                                            x: { ticks: { color: '#8b949e' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+                                            y: { beginAtZero: true, ticks: { color: '#8b949e', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.04)' } }
+                                        }
+                                    }
+                                });
+                            }
+                        }
+
+                        // 8. Org-Type Pie (internships) - Highcharts 3D
+                        const ctxOT = document.getElementById('orgTypePieChart');
+                        if (ctxOT) {
+                            const map = {};
+                            internships.forEach(i => {
+                                const t = (i.type_of_organization || 'Unknown').trim();
+                                map[t] = (map[t] || 0) + 1;
+                            });
+                            const otLabels = Object.keys(map);
+                            const otValues = Object.values(map);
+                            const total = otValues.reduce((a, b) => a + b, 0);
+                            const COLORS = ['#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#f97316'];
+
+                            if (!otLabels.length) {
+                                const parent = ctxOT.parentElement;
+                                ctxOT.style.display = 'none';
+                                if (!parent.querySelector('.no-data-msg')) {
+                                    const msg = document.createElement('div');
+                                    msg.className = 'no-data-msg';
+                                    msg.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;color:#555;font-size:13px;';
+                                    msg.textContent = 'No internship data available';
+                                    parent.appendChild(msg);
+                                }
+                            } else {
+                                ctxOT.style.display = '';
+                                const old = ctxOT.parentElement.querySelector('.no-data-msg');
+                                if (old) old.remove();
+
+                                // Highcharts 3D initialization
+                                Highcharts.chart('orgTypePieChart', {
+                                    chart: {
+                                        type: 'pie',
+                                        backgroundColor: 'transparent',
+                                        options3d: {
+                                            enabled: true,
+                                            alpha: 45
+                                        }
+                                    },
+                                    title: { text: null },
+                                    tooltip: {
+                                        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                                        style: { color: '#fff' },
+                                        borderWidth: 0,
+                                        pointFormat: '{series.name}: <b>{point.y}</b> ({point.percentage:.1f}%)'
+                                    },
+                                    plotOptions: {
+                                        pie: {
+                                            innerSize: '50%',
+                                            depth: 45,
+                                            dataLabels: { enabled: false }, // Hide default labels since we have a legend
+                                            colors: COLORS,
+                                            borderWidth: 0,
+                                            allowPointSelect: true,
+                                            cursor: 'pointer',
+                                            states: {
+                                                hover: { brightness: 0.1 }
+                                            }
+                                        }
+                                    },
+                                    series: [{
+                                        name: 'Internships',
+                                        data: otLabels.map((l, i) => {
+                                            // Make the first slice initially popped out (sliced)
+                                            return {
+                                                name: l,
+                                                y: otValues[i],
+                                                sliced: i === 0
+                                            };
+                                        })
+                                    }],
+                                    credits: { enabled: false }
+                                });
+
+                                // Custom legend panel
+                                const panel = document.getElementById('orgTypeLegendPanel');
+                                if (panel) {
+                                    panel.innerHTML = `
+                                        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 24px;">
+                                        ${otLabels.map((l, i) => `
+                                            <div style="display:flex;align-items:center;gap:8px;">
+                                                <div style="width:14px;height:14px;border-radius:50%;background:${COLORS[i % COLORS.length]};flex-shrink:0;"></div>
+                                                <span style="color:#cbd5e1;font-size:14px;font-weight:500;">${l}</span>
+                                            </div>`).join('')}
+                                        </div>
+                                    `;
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Chart render error:', e);
+                    }
+                }
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    load();
+                    subscribeAllChanges(load);
+                });
+            })();
+        </script>
+</body>
+
+</html>
