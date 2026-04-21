@@ -24,7 +24,7 @@
             <a href="field-visits.html" class="sidebar-link"><i class="bi bi-pin-map-fill"></i> <span>Field Visits</span></a>
             <a href="industrial-visits.html" class="sidebar-link"><i class="bi bi-buildings-fill"></i> <span>Industrial Visits</span></a>
             <a href="placements.html" class="sidebar-link active"><i class="bi bi-briefcase-fill"></i> <span>Placements</span></a>
-            <a href="external-jobs.html" class="sidebar-link"><i class="bi bi-globe"></i> <span>External Jobs (OSINT)</span></a>
+            <a href="external-jobs.html" class="sidebar-link"><i class="bi bi-globe"></i> <span>Job Offers</span></a>
             <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-fill"></i> <span>Reports</span></a>
             <a href="settings.html" class="sidebar-link"><i class="bi bi-gear-fill"></i> <span>Settings</span></a>
         </nav>
@@ -123,7 +123,7 @@
                     </div>
                     <div>
                         <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Contact</h3>
-                        <p style="font-size: 12px; color: var(--text-muted);">Email: pulse-r24@rru.ac.in</p>
+                        <p style="font-size: 12px; color: var(--text-muted);">Email: campusdirector@rru.ac.in</p>
                         <p style="font-size: 12px; color: var(--text-muted);">Phone: +91 79 XXXXXXXX</p>
                     </div>
                     <div>
@@ -338,27 +338,6 @@
             ));
         });
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            loadPlacements();
-
-            // Populate dropdowns for the modal
-            try {
-                const students = await getStudents();
-                const studentDataList = document.createElement('datalist');
-                studentDataList.id = 'studentList';
-                document.body.appendChild(studentDataList);
-
-                studentDataList.innerHTML = (students || []).map(s =>
-                    `<option value="${s.enrollment_number}">${escHtml(s.student_name)}</option>`
-                ).join('');
-
-                // Attach datalist to the enrollment inputs
-                document.getElementById('mp-enrollment').setAttribute('list', 'studentList');
-                document.getElementById('ep-enrollment').setAttribute('list', 'studentList');
-
-            } catch (e) { console.warn("Could not load dropdowns:", e); }
-        });
-
         // Modal controls
         document.getElementById('openAddPlacementModal').addEventListener('click', () => {
             document.getElementById('addPlacementModal').style.display = 'flex';
@@ -472,13 +451,32 @@
                 btn.disabled = false;
             }
         });
-        document.addEventListener('DOMContentLoaded', () => {
+
+        // Guard against double DOMContentLoaded
+        function initPlacementsPage() {
             loadPlacements();
+            // Populate datalist for enrollment autocomplete
+            getStudents().then(students => {
+                const studentDataList = document.getElementById('studentList') || document.createElement('datalist');
+                studentDataList.id = 'studentList';
+                if (!document.getElementById('studentList')) document.body.appendChild(studentDataList);
+                studentDataList.innerHTML = (students || []).map(s =>
+                    `<option value="${s.enrollment_number}">${escHtml(s.student_name)}</option>`
+                ).join('');
+                document.getElementById('mp-enrollment').setAttribute('list', 'studentList');
+                document.getElementById('ep-enrollment').setAttribute('list', 'studentList');
+            }).catch(e => console.warn('Could not load dropdowns:', e));
+
             subscribeAllChanges(() => {
                 console.log('[Realtime] Refreshing placements...');
                 loadPlacements();
             });
-        });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initPlacementsPage);
+        } else {
+            initPlacementsPage();
+        }
     </script>
 </body>
 

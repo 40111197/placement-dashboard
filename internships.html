@@ -24,7 +24,7 @@
             <a href="field-visits.html" class="sidebar-link"><i class="bi bi-pin-map-fill"></i> <span>Field Visits</span></a>
             <a href="industrial-visits.html" class="sidebar-link"><i class="bi bi-buildings-fill"></i> <span>Industrial Visits</span></a>
             <a href="placements.html" class="sidebar-link"><i class="bi bi-briefcase-fill"></i> <span>Placements</span></a>
-            <a href="external-jobs.html" class="sidebar-link"><i class="bi bi-globe"></i> <span>External Jobs (OSINT)</span></a>
+            <a href="external-jobs.html" class="sidebar-link"><i class="bi bi-globe"></i> <span>Job Offers</span></a>
             <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-fill"></i> <span>Reports</span></a>
             <a href="settings.html" class="sidebar-link"><i class="bi bi-gear-fill"></i> <span>Settings</span></a>
         </nav>
@@ -124,7 +124,7 @@
                     </div>
                     <div>
                         <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Contact</h3>
-                        <p style="font-size: 12px; color: var(--text-muted);">Email: pulse-r24@rru.ac.in</p>
+                        <p style="font-size: 12px; color: var(--text-muted);">Email: campusdirector@rru.ac.in</p>
                         <p style="font-size: 12px; color: var(--text-muted);">Phone: +91 79 XXXXXXXX</p>
                     </div>
                     <div>
@@ -162,11 +162,15 @@
                         <input type="text" id="mi-programme" class="form-input" placeholder="e.g. PGDSDF" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Name of Student</label>
-                        <input type="text" id="mi-name" class="form-input" placeholder="Enter student name" required>
+                        <label class="form-label">Batch</label>
+                        <input type="text" id="mi-batch" class="form-input" placeholder="e.g. Batch-1" required>
                     </div>
                 </div>
                 <div class="form-group-row">
+                    <div class="form-group">
+                        <label class="form-label">Name of Student</label>
+                        <input type="text" id="mi-name" class="form-input" placeholder="Enter student name" required>
+                    </div>
                     <div class="form-group">
                         <label class="form-label">Gender</label>
                         <select id="mi-gender" class="form-select" required>
@@ -175,34 +179,30 @@
                             <option value="Other">Other</option>
                         </select>
                     </div>
+                </div>
+                <div class="form-group-row">
                     <div class="form-group">
                         <label class="form-label">Role</label>
                         <input type="text" id="mi-role" class="form-input" placeholder="e.g. SDE Intern">
                     </div>
-                </div>
-                <div class="form-group-row">
                     <div class="form-group">
-                        <label class="form-label">Programme</label>
-                        <input type="text" id="mi-programme" class="form-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Batch</label>
-                        <input type="text" id="mi-batch" class="form-input" required placeholder="e.g. Batch-1">
+                        <label class="form-label">Salary / Stipend</label>
+                        <input type="text" id="mi-salary" class="form-input" placeholder="e.g. 10000">
                     </div>
                 </div>
                 <div class="form-group-row">
                     <div class="form-group">
-                        <label class="form-label">Internship Place</label>
+                        <label class="form-label">Internship Place 1</label>
                         <input type="text" id="mi-place" class="form-input" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Duration</label>
+                        <label class="form-label">Duration 1</label>
                         <input type="text" id="mi-duration" class="form-input">
                     </div>
                 </div>
                 <div class="form-group-row">
                     <div class="form-group">
-                        <label class="form-label">City</label>
+                        <label class="form-label">City 1</label>
                         <input type="text" id="mi-city" class="form-input">
                     </div>
                     <div class="form-group">
@@ -212,6 +212,22 @@
                             <option value="Govt./Pvt">Govt./Pvt</option>
                             <option value="Pvt.">Pvt.</option>
                         </select>
+                    </div>
+                </div>
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label class="form-label">Internship Place 2 (Optional)</label>
+                        <input type="text" id="mi-place-02" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Duration 2 (Optional)</label>
+                        <input type="text" id="mi-duration-02" class="form-input">
+                    </div>
+                </div>
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label class="form-label">City 2 (Optional)</label>
+                        <input type="text" id="mi-city-02" class="form-input">
                     </div>
                 </div>
 
@@ -264,22 +280,33 @@
                         <select id="ei-gender" class="form-select" required>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
+                            <option value="Other">Other</option>
                         </select>
                     </div>
                 </div>
                 <div class="form-group-row">
                     <div class="form-group">
-                        <label class="form-label">Internship Place</label>
+                        <label class="form-label">Role</label>
+                        <input type="text" id="ei-role" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Salary / Stipend</label>
+                        <input type="text" id="ei-salary" class="form-input">
+                    </div>
+                </div>
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label class="form-label">Internship Place 1</label>
                         <input type="text" id="ei-place" class="form-input" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Duration</label>
+                        <label class="form-label">Duration 1</label>
                         <input type="text" id="ei-duration" class="form-input">
                     </div>
                 </div>
                 <div class="form-group-row">
                     <div class="form-group">
-                        <label class="form-label">City</label>
+                        <label class="form-label">City 1</label>
                         <input type="text" id="ei-city" class="form-input">
                     </div>
                     <div class="form-group">
@@ -289,6 +316,22 @@
                             <option value="Govt./Pvt">Govt./Pvt</option>
                             <option value="Pvt.">Pvt.</option>
                         </select>
+                    </div>
+                </div>
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label class="form-label">Internship Place 2 (Optional)</label>
+                        <input type="text" id="ei-place-02" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Duration 2 (Optional)</label>
+                        <input type="text" id="ei-duration-02" class="form-input">
+                    </div>
+                </div>
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label class="form-label">City 2 (Optional)</label>
+                        <input type="text" id="ei-city-02" class="form-input">
                     </div>
                 </div>
 
@@ -457,9 +500,7 @@
                 ));
             });
 
-            document.addEventListener('DOMContentLoaded', async () => {
-                load();
-            });
+            // Initialization handled by initInternshipsPage() at the bottom.
 
             // Modal triggers
             document.getElementById('addStudentBtn').addEventListener('click', () => {
@@ -576,13 +617,19 @@
                     btn.disabled = false;
                 }
             });
-            document.addEventListener('DOMContentLoaded', () => {
+            // Init: guard against double DOMContentLoaded
+            function initInternshipsPage() {
                 load();
                 subscribeAllChanges(() => {
                     console.log('[Realtime] Refreshing internship list...');
                     load();
                 });
-            });
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initInternshipsPage);
+            } else {
+                initInternshipsPage();
+            }
         })();
     </script>
 </body>

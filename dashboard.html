@@ -36,7 +36,7 @@
             <a href="field-visits.html" class="sidebar-link"><i class="bi bi-pin-map-fill"></i> <span>Field Visits</span></a>
             <a href="industrial-visits.html" class="sidebar-link"><i class="bi bi-buildings-fill"></i> <span>Industrial Visits</span></a>
             <a href="placements.html" class="sidebar-link"><i class="bi bi-briefcase-fill"></i> <span>Placements</span></a>
-            <a href="external-jobs.html" class="sidebar-link"><i class="bi bi-globe"></i> <span>External Jobs (OSINT)</span></a>
+            <a href="external-jobs.html" class="sidebar-link"><i class="bi bi-globe"></i> <span>Job Offers</span></a>
             <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-fill"></i> <span>Reports</span></a>
             <a href="settings.html" class="sidebar-link"><i class="bi bi-gear-fill"></i> <span>Settings</span></a>
         </nav>
@@ -171,7 +171,7 @@
                     </div>
                     <div>
                         <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Contact</h3>
-                        <p style="font-size: 12px; color: var(--text-muted);">Email: pulse-r24@rru.ac.in</p>
+                        <p style="font-size: 12px; color: var(--text-muted);">Email: campusdirector@rru.ac.in</p>
                         <p style="font-size: 12px; color: var(--text-muted);">Phone: +91 79 XXXXXXXX</p>
                     </div>
                     <div>
@@ -428,7 +428,7 @@
                     _markers.addTo(_map);
 
                     // FETCH AND RENDER CORRECT INDIA GEOJSON
-                    fetch('https://raw.githubusercontent.com/datameet/maps/master/States/India-States.json')
+                    fetch('in.json')
                         .then(res => res.json())
                         .then(geo => {
                             // National Boundary (Outer)
@@ -483,6 +483,7 @@
                     }
 
                     const allPoints = [];
+                    const seenLocations = new Set();
 
                     const processList = (list, color, type) => {
                         list.forEach(item => {
@@ -494,8 +495,18 @@
                             const coords = COORDS_NORM[normalized] || COORDS_NORM[normalized.replace(/\s+/g, '')];
                             
                             if (coords) {
-                                const lat = coords[0] + (Math.random() - 0.5) * 0.1;
-                                const lng = coords[1] + (Math.random() - 0.5) * 0.1;
+                                const sig = `${normalized}-${type}`;
+                                if (seenLocations.has(sig)) return;
+                                seenLocations.add(sig);
+
+                                let lat = coords[0];
+                                let lng = coords[1];
+
+                                if (type === 'Placement') { lat += 0.02; lng += 0.02; }
+                                else if (type === 'Internship') { lat -= 0.02; lng -= 0.02; }
+                                else if (type === 'Field Visit') { lat += 0.02; lng -= 0.02; }
+                                else { lat -= 0.02; lng += 0.02; }
+
                                 allPoints.push([lat, lng, 0.4]); 
 
                                 // Resilient name lookup

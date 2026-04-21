@@ -177,7 +177,7 @@ async function updateCompany(id, payload) {
 }
 
 async function deleteCompany(id) {
-    const { error } = await _sb.from('companies').delete().eq('id', id);
+    const { error } = await _sb.from('companies').delete().eq('id', parseInt(id, 10));
     sbCheck(error, 'deleteCompany');
     return { success: true };
 }
@@ -223,7 +223,7 @@ async function updatePlacement(id, payload) {
 }
 
 async function deletePlacement(id) {
-    const { error } = await _sb.from('placements').delete().eq('id', id);
+    const { error } = await _sb.from('placements').delete().eq('id', parseInt(id, 10));
     sbCheck(error, 'deletePlacement');
     return { success: true };
 }
@@ -301,7 +301,8 @@ async function getAcademicYearPlacementRate() {
         // ── Fetch all placements (enrollment numbers only) ─────────────────
         const { data: placements, error: pErr } = await _sb
             .from('placements')
-            .select('enrollment_number');
+            .select('enrollment_number')
+            .neq('status', 'Awaiting for offer letter');
         if (pErr) { console.warn('[api] getAcademicYearPlacementRate - placements fetch:', pErr); return null; }
 
         const placedSet = new Set(
@@ -370,7 +371,7 @@ async function updateInternship(id, payload) {
 }
 
 async function deleteInternship(id) {
-    const { error } = await _sb.from('internships').delete().eq('id', id);
+    const { error } = await _sb.from('internships').delete().eq('id', parseInt(id, 10));
     sbCheck(error, 'deleteInternship');
     return { success: true };
 }
@@ -414,9 +415,14 @@ async function updateFieldVisit(id, payload) {
 }
 
 async function deleteFieldVisit(id) {
-    const { error } = await _sb.from('field_visits').delete().eq('id', id);
-    sbCheck(error, 'deleteFieldVisit');
-    return { success: true };
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) throw new Error(`Invalid id for deleteFieldVisit: "${id}"`);
+    console.log('[API] deleteFieldVisit called with id:', numericId);
+    const { error, count } = await _sb.from('field_visits').delete({ count: 'exact' }).eq('id', numericId);
+    console.log('[API] deleteFieldVisit result - error:', error, 'count:', count);
+    if (error) throw new Error(`[deleteFieldVisit] ${error.message} (code: ${error.code})`);
+    if (count === 0) throw new Error('Delete blocked — check that RLS policy "Allow all for anon - field_visits" exists in Supabase.');
+    return { success: true, deleted: count };
 }
 
 async function importFieldVisits(fileOrFormData) {
@@ -454,7 +460,7 @@ async function updateIndustrialVisit(id, payload) {
 }
 
 async function deleteIndustrialVisit(id) {
-    const { error } = await _sb.from('industrial_visits').delete().eq('id', id);
+    const { error } = await _sb.from('industrial_visits').delete().eq('id', parseInt(id, 10));
     sbCheck(error, 'deleteIndustrialVisit');
     return { success: true };
 }
@@ -472,12 +478,14 @@ async function importIndustrialVisits(fileOrFormData) {
 
 // ─── REPORTS (computed client-side from raw data) ─────────────────────────────
 async function getStats(programme = '') {
-    // Helper to build filtered count query
     const buildCount = (table, colHint = 'programme') => {
         let q = _sb.from(table).select('*', { count: 'exact', head: true });
+        if (table === 'placements') {
+            q = q.neq('status', 'Awaiting for offer letter');
+        }
         if (programme) {
             // Filter by the correct column name per table
-            if (table === 'placements') q = q.ilike('programme', `%${programme.trim()}%`);
+            if (table === 'placements') q = q.ilike('course', `%${programme.trim()}%`);
             else if (table === 'internships') q = q.ilike('programme', `%${programme.trim()}%`);
             else if (table === 'field_visits' || table === 'industrial_visits') q = q.ilike('program_name', `%${programme.trim()}%`);
             else q = q.ilike(colHint, `%${programme.trim()}%`);
@@ -529,11 +537,12 @@ async function getStats(programme = '') {
 
 async function getDeptStats(programme = '') {
     try {
-        const [students, placements] = await Promise.all([
+        const [students, placementsAll] = await Promise.all([
             getStudents().catch(() => []),
             getPlacements().catch(() => [])
         ]);
 
+        const placements = placementsAll.filter(p => p.status !== 'Awaiting for offer letter');
         const deptMap = {};
         const activePlacements = new Set(placements.map(p => String(p.enrollment_number).trim()));
 
@@ -574,7 +583,8 @@ async function getDeptStats(programme = '') {
 }
 
 async function getYearlyTrend(prog = '') {
-    const placements = await getPlacements(prog);
+    const allPlacements = await getPlacements(prog);
+    const placements = allPlacements.filter(p => p.status !== 'Awaiting for offer letter');
     const yearMap = {};
     placements.forEach(p => {
         // Attempt to extract year from various date fields
