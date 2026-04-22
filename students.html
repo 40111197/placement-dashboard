@@ -14,26 +14,32 @@
 
 <body>
     <!-- TOP NAVIGATION BAR -->
-        <aside class="sidebar">
+    <aside class="sidebar">
         <div class="sidebar-header">
-            <img src="https://upload.wikimedia.org/wikipedia/en/b/bc/Rashtriya_Raksha_University_logo.png" alt="RRU Logo">
+            <img src="https://upload.wikimedia.org/wikipedia/en/b/bc/Rashtriya_Raksha_University_logo.png"
+                alt="RRU Logo">
         </div>
         <nav class="sidebar-nav">
             <a href="dashboard.html" class="sidebar-link"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a>
-            <a href="students.html" class="sidebar-link active"><i class="bi bi-people-fill"></i> <span>Students</span></a>
-            <a href="internships.html" class="sidebar-link"><i class="bi bi-person-workspace"></i> <span>Internships</span></a>
-            <a href="field-visits.html" class="sidebar-link"><i class="bi bi-pin-map-fill"></i> <span>Field Visits</span></a>
-            <a href="industrial-visits.html" class="sidebar-link"><i class="bi bi-buildings-fill"></i> <span>Industrial Visits</span></a>
-            <a href="placements.html" class="sidebar-link"><i class="bi bi-briefcase-fill"></i> <span>Placements</span></a>
+            <a href="students.html" class="sidebar-link"><i class="bi bi-people-fill"></i> <span>Students</span></a>
+            <a href="internships.html" class="sidebar-link"><i class="bi bi-person-workspace"></i>
+                <span>Internships</span></a>
+            <a href="field-visits.html" class="sidebar-link"><i class="bi bi-pin-map-fill"></i> <span>Field
+                    Visits</span></a>
+            <a href="industrial-visits.html" class="sidebar-link"><i class="bi bi-buildings-fill"></i> <span>Industrial
+                    Visits</span></a>
+            <a href="placements.html" class="sidebar-link"><i class="bi bi-briefcase-fill"></i>
+                <span>Placements</span></a>
             <a href="external-jobs.html" class="sidebar-link"><i class="bi bi-globe"></i> <span>Job Offers</span></a>
             <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-fill"></i> <span>Reports</span></a>
-            <a href="settings.html" class="sidebar-link"><i class="bi bi-gear-fill"></i> <span>Settings</span></a>
+            <a href="settings.html" class="sidebar-link active"><i class="bi bi-gear-fill"></i>
+                <span>Settings</span></a>
         </nav>
         <div class="sidebar-footer">
             <div class="user-profile">
-                <div class="avatar">A</div>
+                <div class="avatar">CD</div>
                 <div class="user-info">
-                    <div class="name">admin@rru.ac.in</div>
+                    <div class="name">CD PUDUCHERRY CAMPUS</div>
                     <div class="role">Admin</div>
                 </div>
             </div>
@@ -43,316 +49,317 @@
     <!-- Main Content -->
     <div class="dashboard-layout-container">
 
-            <!-- TOP HEADER ROW -->
-            <div class="top-header-row">
+        <!-- TOP HEADER ROW -->
+        <div class="top-header-row">
+            <div>
+                <h1>Students List (<span id="studentCount">0</span>)</h1>
+                <div class="subtitle">Future Leaders and Security Intelligence</div>
+            </div>
+            <div class="header-actions-unified">
+                <input type="text" id="studentSearch" class="search-bar-unified" placeholder="Search students...">
+                <button class="select-unified" id="openImportModal" style="width: auto; padding: 10px 15px;">
+                    <i class="bi bi-file-earmark-excel"></i> Import
+                </button>
+                <button class="select-unified" onclick="exportData('students')"
+                    style="width: auto; padding: 10px 15px;">
+                    <i class="bi bi-download"></i> Export
+                </button>
+                <button class="select-unified" id="openAddStudentModal"
+                    style="width: auto; padding: 10px 15px; background: var(--accent-blue);">
+                    + Add Student
+                </button>
+            </div>
+        </div>
+
+        <div class="widget-panel">
+
+            <div class="table-container data-table-container">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th>SNo</th>
+                            <th>Year</th>
+                            <th>Student Name</th>
+                            <th class="no-wrap">Enrollment</th>
+                            <th>Programme</th>
+                            <th>Batch</th>
+                            <th>RRU Email</th>
+                            <th>Personal Email</th>
+                            <th class="no-wrap">Mobile</th>
+                            <th>Remark</th>
+                            <th>Opted?</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTableBody">
+                        <tr>
+                            <td colspan="14" style="text-align:center;padding:40px;opacity:0.5;">Loading students...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- PAGINATION CONTROLS (Standardized) -->
+            <div class="pagination-controls"
+                style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
+                <div class="pagination-info" style="font-size: 13px; opacity: 0.6;">
+                    Showing <span id="startIndex">0</span> - <span id="endIndex">0</span> of <span
+                        id="totalItems">0</span> students
+                </div>
+                <div class="pagination-btns" style="display: flex; gap: 10px;">
+                    <button id="prevPage" class="select-unified" style="padding: 5px 15px; width: auto;"><i
+                            class="bi bi-chevron-left"></i> Prev</button>
+                    <span id="currentPageIndicator"
+                        style="display: flex; align-items: center; font-size: 13px; font-weight: 600; min-width: 60px; justify-content: center;">Page
+                        1</span>
+                    <button id="nextPage" class="select-unified" style="padding: 5px 15px; width: auto;">Next <i
+                            class="bi bi-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+        <!-- FOOTER -->
+        <footer class="app-footer" style="padding: 40px 0; border-top: 1px solid var(--border); margin-top: 30px;">
+            <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 40px;">
                 <div>
-                    <h1>Students List (<span id="studentCount">0</span>)</h1>
-                    <div class="subtitle">Future Leaders and Security Intelligence</div>
+                    <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Rashtriya Raksha University
+                    </h3>
+                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.8;">Puducherry Campus,
+                        Pondicherry
+                        Institute of Hotel Management & Catering Technology [PIHMCT]<br>Opp To Mahalakshmi Nagar,
+                        Murungapakkam, Puducherry – 605004</p>
                 </div>
-                <div class="header-actions-unified">
-                    <input type="text" id="studentSearch" class="search-bar-unified" placeholder="Search students...">
-                    <button class="select-unified" id="openImportModal" style="width: auto; padding: 10px 15px;">
-                        <i class="bi bi-file-earmark-excel"></i> Import
-                    </button>
-                    <button class="select-unified" onclick="exportData('students')"
-                        style="width: auto; padding: 10px 15px;">
-                        <i class="bi bi-download"></i> Export
-                    </button>
-                    <button class="select-unified" id="openAddStudentModal"
-                        style="width: auto; padding: 10px 15px; background: var(--accent-blue);">
-                        + Add Student
-                    </button>
+                <div>
+                    <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Contact</h3>
+                    <p style="font-size: 12px; color: var(--text-muted);">Email: campusdirector@rru.ac.in</p>
+                    <p style="font-size: 12px; color: var(--text-muted);">Phone: +91 79 XXXXXXXX</p>
                 </div>
-            </div>
-
-            <div class="widget-panel">
-
-                <div class="table-container data-table-container">
-                    <table class="premium-table">
-                        <thead>
-                            <tr>
-                                <th>SNo</th>
-                                <th>Year</th>
-                                <th>Student Name</th>
-                                <th class="no-wrap">Enrollment</th>
-                                <th>Programme</th>
-                                <th>Batch</th>
-                                <th>RRU Email</th>
-                                <th>Personal Email</th>
-                                <th class="no-wrap">Mobile</th>
-                                <th>Remark</th>
-                                <th>Opted?</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="studentsTableBody">
-                            <tr>
-                                <td colspan="14" style="text-align:center;padding:40px;opacity:0.5;">Loading students...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <!-- PAGINATION CONTROLS (Standardized) -->
-                <div class="pagination-controls"
-                    style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
-                    <div class="pagination-info" style="font-size: 13px; opacity: 0.6;">
-                        Showing <span id="startIndex">0</span> - <span id="endIndex">0</span> of <span
-                            id="totalItems">0</span> students
-                    </div>
-                    <div class="pagination-btns" style="display: flex; gap: 10px;">
-                        <button id="prevPage" class="select-unified" style="padding: 5px 15px; width: auto;"><i
-                                class="bi bi-chevron-left"></i> Prev</button>
-                        <span id="currentPageIndicator"
-                            style="display: flex; align-items: center; font-size: 13px; font-weight: 600; min-width: 60px; justify-content: center;">Page
-                            1</span>
-                        <button id="nextPage" class="select-unified" style="padding: 5px 15px; width: auto;">Next <i
-                                class="bi bi-chevron-right"></i></button>
-                    </div>
+                <div>
+                    <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Follow</h3>
+                    <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
+                            style="color: inherit; text-decoration: none;">Instagram</a></p>
+                    <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
+                            style="color: inherit; text-decoration: none;">LinkedIn</a></p>
                 </div>
             </div>
-            <!-- FOOTER -->
-                        <footer class="app-footer"
-                style="padding: 40px 0; border-top: 1px solid var(--border); margin-top: 30px;">
-                <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 40px;">
-                    <div>
-                        <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Rashtriya Raksha University</h3>
-                        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.8;">Puducherry Campus, Pondicherry
-                            Institute of Hotel Management & Catering Technology [PIHMCT]<br>Opp To Mahalakshmi Nagar,
-                            Murungapakkam, Puducherry – 605004</p>
-                    </div>
-                    <div>
-                        <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Contact</h3>
-                        <p style="font-size: 12px; color: var(--text-muted);">Email: campusdirector@rru.ac.in</p>
-                        <p style="font-size: 12px; color: var(--text-muted);">Phone: +91 79 XXXXXXXX</p>
-                    </div>
-                    <div>
-                        <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Follow</h3>
-                        <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
-                                style="color: inherit; text-decoration: none;">Instagram</a></p>
-                        <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
-                                style="color: inherit; text-decoration: none;">LinkedIn</a></p>
-                    </div>
-                </div>
-            </footer>
+        </footer>
     </div>
 
 
 
-        <!-- ADD STUDENT MODAL -->
-        <div id="addStudentModal" class="modal-overlay">
-            <div class="modal-content large">
-                <div class="modal-header">
-                    <h2>Add New Student</h2>
-                    <button class="close-modal" id="closeAddModal">&times;</button>
+    <!-- ADD STUDENT MODAL -->
+    <div id="addStudentModal" class="modal-overlay">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2>Add New Student</h2>
+                <button class="close-modal" id="closeAddModal">&times;</button>
+            </div>
+            <form class="modal-form three-col" id="addStudentForm" enctype="multipart/form-data">
+                <div id="modalError" style="color:#f87171;font-size:13px;margin-bottom:8px;display:none;"></div>
+                <div class="form-group">
+                    <input type="text" id="ms-name" required placeholder=" ">
+                    <label>Student Name</label>
                 </div>
-                <form class="modal-form three-col" id="addStudentForm" enctype="multipart/form-data">
-                    <div id="modalError" style="color:#f87171;font-size:13px;margin-bottom:8px;display:none;"></div>
-                    <div class="form-group">
-                        <input type="text" id="ms-name" required placeholder=" ">
-                        <label>Student Name</label>
+                <div class="form-group">
+                    <input type="text" id="ms-enrollment" required placeholder=" ">
+                    <label>Enrollment Number</label>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="ms-student-email" required placeholder=" ">
+                    <label>Student Email ID</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="ms-phone" placeholder=" ">
+                    <label>Mobile Number</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="ms-programme" placeholder=" ">
+                    <label>Programme</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="ms-batch" placeholder=" ">
+                    <label>Batch</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="ms-year" placeholder=" ">
+                    <label>Admitted Year</label>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="ms-personal-email" placeholder=" ">
+                    <label>Personal Email ID</label>
+                </div>
+                <div class="form-group">
+                    <select id="ms-opted">
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                    <label>Opted for Placement?</label>
+                </div>
+                <div class="form-group">
+                    <select id="ms-higher-ed">
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                    <label>Higher Education?</label>
+                </div>
+
+                <div class="form-group" style="grid-column: span 3;">
+                    <textarea id="ms-remark" placeholder="Remark..."
+                        style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 6px; padding: 10px;"></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="add-btn" id="addStudentSubmitBtn">Add Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- EDIT STUDENT MODAL -->
+    <div id="editStudentModal" class="modal-overlay" style="display:none;">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2>Edit Student</h2>
+                <button class="close-modal" id="closeEditModal">&times;</button>
+            </div>
+            <form class="modal-form three-col" id="editStudentForm" enctype="multipart/form-data">
+                <input type="hidden" id="es-original-enrollment">
+                <div id="editModalError" style="color:#f87171;font-size:13px;margin-bottom:8px;display:none;"></div>
+                <div class="form-group">
+                    <input type="text" id="es-name" required placeholder=" ">
+                    <label>Student Name</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="es-enrollment" required placeholder=" ">
+                    <label>Enrollment Number</label>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="es-student-email" required placeholder=" ">
+                    <label>Student Email ID</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="es-phone" placeholder=" ">
+                    <label>Mobile Number</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="es-programme" placeholder=" ">
+                    <label>Programme</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="es-batch" placeholder=" ">
+                    <label>Batch</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="es-year" placeholder=" ">
+                    <label>Admitted Year</label>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="es-personal-email" placeholder=" ">
+                    <label>Personal Email ID</label>
+                </div>
+                <div class="form-group">
+                    <select id="es-opted">
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                    <label>Opted for Placement?</label>
+                </div>
+                <div class="form-group">
+                    <select id="es-higher-ed">
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                    <label>Higher Education?</label>
+                </div>
+
+                <div class="form-group" style="grid-column: span 3;">
+                    <textarea id="es-remark" placeholder="Remark..."
+                        style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 6px; padding: 10px;"></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="add-btn" id="editStudentSubmitBtn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PLACEMENT FLOW MODAL -->
+    <div id="placementFlowModal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Record Placement</h2>
+                <button class="close-modal" id="closePfModal">&times;</button>
+            </div>
+            <form class="modal-form" id="placementFlowForm">
+                <input type="hidden" id="pf-student-id">
+                <input type="hidden" id="pf-student-name">
+                <div id="pfError" style="color:#f87171;font-size:13px;margin-bottom:8px;display:none;"></div>
+
+                <div class="form-group">
+                    <select id="pf-company" required></select>
+                    <label>Company</label>
+                </div>
+                <div class="form-group"><input type="text" id="pf-role" placeholder=" "><label>Role</label></div>
+                <div class="form-group"><input type="date" id="pf-date" required><label class="static-label">Placement
+                        Date</label></div>
+                <div class="form-group"><input type="number" step="0.1" id="pf-salary" required
+                        placeholder=" "><label>Salary (LPA)</label></div>
+                <div class="form-group">
+                    <select id="pf-status" required>
+                        <option value="Placed">Placed</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                    <label>Status</label>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="submit" class="add-btn" id="pfSubmitBtn">Save Placement</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- IMPORT EXCEL MODAL -->
+    <div id="importStudentModal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Import Students from Excel</h2>
+                <button class="close-modal" id="closeImportModal">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <p style="margin-bottom: 15px; font-size: 14px; color: #94a3b8;">
+                    Please upload an Excel file (.xlsx or .xls) with the following columns:<br>
+                    <strong style="color: #ffffff;">Enrollment Number, Student Name, Email ID, Mobile Number,
+                        Programme, Higher Education Plan, Placement Status</strong>
+                </p>
+                </p>
+                <form id="importStudentForm">
+                    <div id="importError"
+                        style="color:#f87171;font-size:13px;margin-bottom:12px;display:none;padding:10px;background:#fef2f2;border-radius:6px;border:1px solid #fee2e2;">
                     </div>
-                    <div class="form-group">
-                        <input type="text" id="ms-enrollment" required placeholder=" ">
-                        <label>Enrollment Number</label>
-                    </div>
-                    <div class="form-group">
-                        <input type="email" id="ms-student-email" required placeholder=" ">
-                        <label>Student Email ID</label>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" id="ms-phone" placeholder=" ">
-                        <label>Mobile Number</label>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" id="ms-programme" placeholder=" ">
-                        <label>Programme</label>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" id="ms-batch" placeholder=" ">
-                        <label>Batch</label>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" id="ms-year" placeholder=" ">
-                        <label>Admitted Year</label>
-                    </div>
-                    <div class="form-group">
-                        <input type="email" id="ms-personal-email" placeholder=" ">
-                        <label>Personal Email ID</label>
-                    </div>
-                    <div class="form-group">
-                        <select id="ms-opted">
-                            <option value="No">No</option>
-                            <option value="Yes">Yes</option>
-                        </select>
-                        <label>Opted for Placement?</label>
-                    </div>
-                    <div class="form-group">
-                        <select id="ms-higher-ed">
-                            <option value="No">No</option>
-                            <option value="Yes">Yes</option>
-                        </select>
-                        <label>Higher Education?</label>
+                    <div id="importSuccess"
+                        style="color:#10b981;font-size:13px;margin-bottom:12px;display:none;padding:10px;background:#f0fdf4;border-radius:6px;border:1px solid #dcfce7;">
                     </div>
 
-                    <div class="form-group" style="grid-column: span 3;">
-                        <textarea id="ms-remark" placeholder="Remark..."
-                            style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 6px; padding: 10px;"></textarea>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <input type="file" id="importFile" accept=".xlsx, .xls"
+                            style="display: block; width: 100%; padding: 10px; border: 1px dashed #ccc; border-radius: 6px; cursor: pointer;">
                     </div>
-                    <div class="modal-buttons">
-                        <button type="submit" class="add-btn" id="addStudentSubmitBtn">Add Student</button>
+
+                    <div id="importStatus" style="margin-top: 15px; font-size: 14px; display: none;">
+                        <div class="spinner"
+                            style="display: inline-block; width: 15px; height: 15px; border: 2px solid #4ade80; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;">
+                        </div>
+                        <span style="margin-left: 10px; color: #666;">Processing file...</span>
+                    </div>
+
+                    <div class="modal-buttons" style="display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="submit" class="btn-add" id="importSubmitBtn"
+                            style="background-color: #10b981; border: none; color: white;">Upload & Import</button>
                     </div>
                 </form>
             </div>
         </div>
+    </div>
 
-        <!-- EDIT STUDENT MODAL -->
-        <div id="editStudentModal" class="modal-overlay" style="display:none;">
-            <div class="modal-content large">
-                <div class="modal-header">
-                    <h2>Edit Student</h2>
-                    <button class="close-modal" id="closeEditModal">&times;</button>
-                </div>
-                <form class="modal-form three-col" id="editStudentForm" enctype="multipart/form-data">
-                    <input type="hidden" id="es-original-enrollment">
-                    <div id="editModalError" style="color:#f87171;font-size:13px;margin-bottom:8px;display:none;"></div>
-                    <div class="form-group">
-                        <input type="text" id="es-name" required placeholder=" ">
-                        <label>Student Name</label>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" id="es-enrollment" required placeholder=" ">
-                        <label>Enrollment Number</label>
-                    </div>
-                    <div class="form-group">
-                        <input type="email" id="es-student-email" required placeholder=" ">
-                        <label>Student Email ID</label>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" id="es-phone" placeholder=" ">
-                        <label>Mobile Number</label>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" id="es-programme" placeholder=" ">
-                        <label>Programme</label>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" id="es-batch" placeholder=" ">
-                        <label>Batch</label>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" id="es-year" placeholder=" ">
-                        <label>Admitted Year</label>
-                    </div>
-                    <div class="form-group">
-                        <input type="email" id="es-personal-email" placeholder=" ">
-                        <label>Personal Email ID</label>
-                    </div>
-                    <div class="form-group">
-                        <select id="es-opted">
-                            <option value="No">No</option>
-                            <option value="Yes">Yes</option>
-                        </select>
-                        <label>Opted for Placement?</label>
-                    </div>
-                    <div class="form-group">
-                        <select id="es-higher-ed">
-                            <option value="No">No</option>
-                            <option value="Yes">Yes</option>
-                        </select>
-                        <label>Higher Education?</label>
-                    </div>
-
-                    <div class="form-group" style="grid-column: span 3;">
-                        <textarea id="es-remark" placeholder="Remark..."
-                            style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 6px; padding: 10px;"></textarea>
-                    </div>
-                    <div class="modal-buttons">
-                        <button type="submit" class="add-btn" id="editStudentSubmitBtn">Save Changes</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- PLACEMENT FLOW MODAL -->
-        <div id="placementFlowModal" class="modal-overlay" style="display:none;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Record Placement</h2>
-                    <button class="close-modal" id="closePfModal">&times;</button>
-                </div>
-                <form class="modal-form" id="placementFlowForm">
-                    <input type="hidden" id="pf-student-id">
-                    <input type="hidden" id="pf-student-name">
-                    <div id="pfError" style="color:#f87171;font-size:13px;margin-bottom:8px;display:none;"></div>
-
-                    <div class="form-group">
-                        <select id="pf-company" required></select>
-                        <label>Company</label>
-                    </div>
-                    <div class="form-group"><input type="text" id="pf-role" placeholder=" "><label>Role</label></div>
-                    <div class="form-group"><input type="date" id="pf-date" required><label
-                            class="static-label">Placement Date</label></div>
-                    <div class="form-group"><input type="number" step="0.1" id="pf-salary" required
-                            placeholder=" "><label>Salary (LPA)</label></div>
-                    <div class="form-group">
-                        <select id="pf-status" required>
-                            <option value="Placed">Placed</option>
-                            <option value="Pending">Pending</option>
-                        </select>
-                        <label>Status</label>
-                    </div>
-
-                    <div class="modal-buttons">
-                        <button type="submit" class="add-btn" id="pfSubmitBtn">Save Placement</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        <!-- IMPORT EXCEL MODAL -->
-        <div id="importStudentModal" class="modal-overlay" style="display:none;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Import Students from Excel</h2>
-                    <button class="close-modal" id="closeImportModal">&times;</button>
-                </div>
-                <div class="modal-body" style="padding: 20px;">
-                    <p style="margin-bottom: 15px; font-size: 14px; color: #94a3b8;">
-                        Please upload an Excel file (.xlsx or .xls) with the following columns:<br>
-                        <strong style="color: #ffffff;">Enrollment Number, Student Name, Email ID, Mobile Number,
-                            Programme, Higher Education Plan, Placement Status</strong>
-                    </p>
-                    </p>
-                    <form id="importStudentForm">
-                        <div id="importError"
-                            style="color:#f87171;font-size:13px;margin-bottom:12px;display:none;padding:10px;background:#fef2f2;border-radius:6px;border:1px solid #fee2e2;">
-                        </div>
-                        <div id="importSuccess"
-                            style="color:#10b981;font-size:13px;margin-bottom:12px;display:none;padding:10px;background:#f0fdf4;border-radius:6px;border:1px solid #dcfce7;">
-                        </div>
-
-                        <div class="form-group" style="margin-bottom: 20px;">
-                            <input type="file" id="importFile" accept=".xlsx, .xls"
-                                style="display: block; width: 100%; padding: 10px; border: 1px dashed #ccc; border-radius: 6px; cursor: pointer;">
-                        </div>
-
-                        <div id="importStatus" style="margin-top: 15px; font-size: 14px; display: none;">
-                            <div class="spinner"
-                                style="display: inline-block; width: 15px; height: 15px; border: 2px solid #4ade80; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;">
-                            </div>
-                            <span style="margin-left: 10px; color: #666;">Processing file...</span>
-                        </div>
-
-                        <div class="modal-buttons" style="display: flex; justify-content: flex-end; gap: 10px;">
-                            <button type="submit" class="btn-add" id="importSubmitBtn"
-                                style="background-color: #10b981; border: none; color: white;">Upload & Import</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        </main>
+    </main>
     </div>
     <script src="device-tracker.js?v=101"></script>
     <script src="auth-guard.js?v=101"></script>

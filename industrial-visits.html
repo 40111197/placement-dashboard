@@ -13,26 +13,32 @@
 
 <body>
     <!-- TOP NAVIGATION BAR -->
-        <aside class="sidebar">
+    <aside class="sidebar">
         <div class="sidebar-header">
-            <img src="https://upload.wikimedia.org/wikipedia/en/b/bc/Rashtriya_Raksha_University_logo.png" alt="RRU Logo">
+            <img src="https://upload.wikimedia.org/wikipedia/en/b/bc/Rashtriya_Raksha_University_logo.png"
+                alt="RRU Logo">
         </div>
         <nav class="sidebar-nav">
             <a href="dashboard.html" class="sidebar-link"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a>
             <a href="students.html" class="sidebar-link"><i class="bi bi-people-fill"></i> <span>Students</span></a>
-            <a href="internships.html" class="sidebar-link"><i class="bi bi-person-workspace"></i> <span>Internships</span></a>
-            <a href="field-visits.html" class="sidebar-link"><i class="bi bi-pin-map-fill"></i> <span>Field Visits</span></a>
-            <a href="industrial-visits.html" class="sidebar-link active"><i class="bi bi-buildings-fill"></i> <span>Industrial Visits</span></a>
-            <a href="placements.html" class="sidebar-link"><i class="bi bi-briefcase-fill"></i> <span>Placements</span></a>
+            <a href="internships.html" class="sidebar-link"><i class="bi bi-person-workspace"></i>
+                <span>Internships</span></a>
+            <a href="field-visits.html" class="sidebar-link"><i class="bi bi-pin-map-fill"></i> <span>Field
+                    Visits</span></a>
+            <a href="industrial-visits.html" class="sidebar-link"><i class="bi bi-buildings-fill"></i> <span>Industrial
+                    Visits</span></a>
+            <a href="placements.html" class="sidebar-link"><i class="bi bi-briefcase-fill"></i>
+                <span>Placements</span></a>
             <a href="external-jobs.html" class="sidebar-link"><i class="bi bi-globe"></i> <span>Job Offers</span></a>
             <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-fill"></i> <span>Reports</span></a>
-            <a href="settings.html" class="sidebar-link"><i class="bi bi-gear-fill"></i> <span>Settings</span></a>
+            <a href="settings.html" class="sidebar-link active"><i class="bi bi-gear-fill"></i>
+                <span>Settings</span></a>
         </nav>
         <div class="sidebar-footer">
             <div class="user-profile">
-                <div class="avatar">A</div>
+                <div class="avatar">CD</div>
                 <div class="user-info">
-                    <div class="name">admin@rru.ac.in</div>
+                    <div class="name">CD PUDUCHERRY CAMPUS</div>
                     <div class="role">Admin</div>
                 </div>
             </div>
@@ -42,90 +48,100 @@
     <!-- Main Content -->
     <div class="dashboard-layout-container">
 
-            <!-- TOP HEADER ROW -->
-            <div class="top-header-row">
+        <!-- TOP HEADER ROW -->
+        <div class="top-header-row">
+            <div>
+                <h1>Industrial Visits List</h1>
+            </div>
+            <div class="header-actions-unified">
+                <input type="text" id="industrialSearchUnified" class="search-bar-unified"
+                    placeholder="Search industrial visits...">
+                <button class="select-unified"
+                    onclick="document.getElementById('importIndustrialVisitModal').style.display='flex'"
+                    style="width: auto; padding: 10px 15px;">
+                    <i class="bi bi-file-earmark-excel"></i> Import
+                </button>
+                <button class="select-unified" onclick="exportData('industrial_visits')"
+                    style="width: auto; padding: 10px 15px;">
+                    <i class="bi bi-download"></i> Export
+                </button>
+                <button class="select-unified" id="addIndustrialBtn"
+                    style="width: auto; padding: 10px 15px; background: var(--accent-blue);">
+                    + Add Industrial Visit
+                </button>
+            </div>
+        </div>
+
+        <div class="widget-panel">
+            <div class="table-container data-table-container">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th>SR. NO</th>
+                            <th>ORGANIZATION VISITED</th>
+                            <th>VISIT DATE</th>
+                            <th>STUDENTS</th>
+                            <th>PROGRAM</th>
+                            <th>BATCH</th>
+                            <th>STAFF COUNT</th>
+                            <th>LEAD STAFF</th>
+                            <th class="no-wrap">TYPE</th>
+                            <th>CITY</th>
+                            <th>ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="11" style="text-align:center;padding:40px;opacity:0.5;">Loading industrial
+                                visits...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PAGINATION CONTROLS -->
+            <div class="pagination-controls"
+                style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
+                <div class="pagination-info" style="font-size: 13px; opacity: 0.6;">
+                    Showing <span id="startIndex">0</span> - <span id="endIndex">0</span> of <span
+                        id="totalItems">0</span> industrial visits
+                </div>
+                <div class="pagination-btns" style="display: flex; gap: 10px;">
+                    <button id="prevPage" class="select-unified" style="padding: 5px 15px; width: auto;"><i
+                            class="bi bi-chevron-left"></i> Prev</button>
+                    <span id="currentPageIndicator"
+                        style="display: flex; align-items: center; font-size: 13px; font-weight: 600; min-width: 60px; justify-content: center;">Page
+                        1</span>
+                    <button id="nextPage" class="select-unified" style="padding: 5px 15px; width: auto;">Next <i
+                            class="bi bi-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="app-footer" style="padding: 40px 0; border-top: 1px solid var(--border); margin-top: 30px;">
+            <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 40px;">
                 <div>
-                    <h1>Industrial Visits List</h1>
+                    <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Rashtriya Raksha University
+                    </h3>
+                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.8;">Puducherry Campus,
+                        Pondicherry
+                        Institute of Hotel Management & Catering Technology [PIHMCT]<br>Opp To Mahalakshmi Nagar,
+                        Murungapakkam, Puducherry – 605004</p>
                 </div>
-                <div class="header-actions-unified">
-                    <input type="text" id="industrialSearchUnified" class="search-bar-unified"
-                        placeholder="Search industrial visits...">
-                    <button class="select-unified"
-                        onclick="document.getElementById('importIndustrialVisitModal').style.display='flex'"
-                        style="width: auto; padding: 10px 15px;">
-                        <i class="bi bi-file-earmark-excel"></i> Import
-                    </button>
-                    <button class="select-unified" onclick="exportData('industrial_visits')"
-                        style="width: auto; padding: 10px 15px;">
-                        <i class="bi bi-download"></i> Export
-                    </button>
-                    <button class="select-unified" id="addIndustrialBtn"
-                        style="width: auto; padding: 10px 15px; background: var(--accent-blue);">
-                        + Add Industrial Visit
-                    </button>
+                <div>
+                    <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Contact</h3>
+                    <p style="font-size: 12px; color: var(--text-muted);">Email: campusdirector@rru.ac.in</p>
+                    <p style="font-size: 12px; color: var(--text-muted);">Phone: +91 79 XXXXXXXX</p>
                 </div>
-            </div>
-
-            <div class="widget-panel">
-                <div class="table-container data-table-container">
-                    <table class="premium-table">
-                        <thead>
-                            <tr>
-                                <th>SR. NO</th>
-                                <th>ORGANIZATION VISITED</th>
-                                <th>VISIT DATE</th>
-                                <th>STUDENTS</th>
-                                <th>PROGRAM</th>
-                                <th>BATCH</th>
-                                <th>STAFF COUNT</th>
-                                <th>LEAD STAFF</th>
-                                <th class="no-wrap">TYPE</th>
-                                <th>CITY</th>
-                                <th>ACTIONS</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                             <tr><td colspan="11" style="text-align:center;padding:40px;opacity:0.5;">Loading industrial visits...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- PAGINATION CONTROLS -->
-                <div class="pagination-controls" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
-                    <div class="pagination-info" style="font-size: 13px; opacity: 0.6;">
-                        Showing <span id="startIndex">0</span> - <span id="endIndex">0</span> of <span id="totalItems">0</span> industrial visits
-                    </div>
-                    <div class="pagination-btns" style="display: flex; gap: 10px;">
-                        <button id="prevPage" class="select-unified" style="padding: 5px 15px; width: auto;"><i class="bi bi-chevron-left"></i> Prev</button>
-                        <span id="currentPageIndicator" style="display: flex; align-items: center; font-size: 13px; font-weight: 600; min-width: 60px; justify-content: center;">Page 1</span>
-                        <button id="nextPage" class="select-unified" style="padding: 5px 15px; width: auto;">Next <i class="bi bi-chevron-right"></i></button>
-                    </div>
+                <div>
+                    <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Follow</h3>
+                    <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
+                            style="color: inherit; text-decoration: none;">Instagram</a></p>
+                    <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
+                            style="color: inherit; text-decoration: none;">LinkedIn</a></p>
                 </div>
             </div>
-
-            <footer class="app-footer"
-                style="padding: 40px 0; border-top: 1px solid var(--border); margin-top: 30px;">
-                <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 40px;">
-                    <div>
-                        <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Rashtriya Raksha University</h3>
-                        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.8;">Puducherry Campus, Pondicherry
-                            Institute of Hotel Management & Catering Technology [PIHMCT]<br>Opp To Mahalakshmi Nagar,
-                            Murungapakkam, Puducherry – 605004</p>
-                    </div>
-                    <div>
-                        <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Contact</h3>
-                        <p style="font-size: 12px; color: var(--text-muted);">Email: campusdirector@rru.ac.in</p>
-                        <p style="font-size: 12px; color: var(--text-muted);">Phone: +91 79 XXXXXXXX</p>
-                    </div>
-                    <div>
-                        <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Follow</h3>
-                        <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
-                                style="color: inherit; text-decoration: none;">Instagram</a></p>
-                        <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
-                                style="color: inherit; text-decoration: none;">LinkedIn</a></p>
-                    </div>
-                </div>
-            </footer>
+        </footer>
 
     </div>
 
@@ -134,7 +150,8 @@
         <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header">
                 <h2>Add Industrial Visit Record</h2>
-                <button class="close-modal" onclick="document.getElementById('industrialModal').style.display='none'">&times;</button>
+                <button class="close-modal"
+                    onclick="document.getElementById('industrialModal').style.display='none'">&times;</button>
             </div>
             <form id="industrialForm">
                 <div id="modalError" class="alert alert-error"></div>
@@ -190,7 +207,8 @@
 
                 <div class="button-group">
                     <button type="submit" id="saveIndustrialBtn" class="btn btn-primary">Save Industrial Visit</button>
-                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('industrialModal').style.display='none'">Cancel</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="document.getElementById('industrialModal').style.display='none'">Cancel</button>
                 </div>
             </form>
         </div>
@@ -201,7 +219,8 @@
         <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header">
                 <h2>Edit Industrial Visit Record</h2>
-                <button class="close-modal" onclick="document.getElementById('editIndustrialVisitModal').style.display='none'">&times;</button>
+                <button class="close-modal"
+                    onclick="document.getElementById('editIndustrialVisitModal').style.display='none'">&times;</button>
             </div>
             <form id="editIndustrialVisitForm">
                 <input type="hidden" id="ei-id">
@@ -257,8 +276,10 @@
                 </div>
 
                 <div class="button-group">
-                    <button type="submit" id="editIndustrialVisitSubmitBtn" class="btn btn-primary">Save Changes</button>
-                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('editIndustrialVisitModal').style.display='none'">Cancel</button>
+                    <button type="submit" id="editIndustrialVisitSubmitBtn" class="btn btn-primary">Save
+                        Changes</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="document.getElementById('editIndustrialVisitModal').style.display='none'">Cancel</button>
                 </div>
             </form>
         </div>
@@ -269,16 +290,20 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Import Industrial Visits from Excel</h2>
-                <button class="close-modal" onclick="document.getElementById('importIndustrialVisitModal').style.display='none'">&times;</button>
+                <button class="close-modal"
+                    onclick="document.getElementById('importIndustrialVisitModal').style.display='none'">&times;</button>
             </div>
             <div style="padding: 20px;">
-                <p style="margin-bottom: 15px; opacity: 0.8; font-size: 14px;">Upload an Excel file (.xlsx or .xls) with headers:<br>
-                    <strong>Organization_Visited, Visited_Date, No_of_Student_Visited, Program_Name, No_of_Staff_Visited, Staff_Name, City</strong>
+                <p style="margin-bottom: 15px; opacity: 0.8; font-size: 14px;">Upload an Excel file (.xlsx or .xls) with
+                    headers:<br>
+                    <strong>Organization_Visited, Visited_Date, No_of_Student_Visited, Program_Name,
+                        No_of_Staff_Visited, Staff_Name, City</strong>
                 </p>
                 <form id="importIndustrialVisitForm">
                     <div id="importError" class="alert alert-error" style="display:none;"></div>
                     <div class="form-group">
-                        <input type="file" id="importFile" accept=".xlsx, .xls" required style="border: 1px dashed #555; padding: 20px; width: 100%; border-radius: 8px; color: white;">
+                        <input type="file" id="importFile" accept=".xlsx, .xls" required
+                            style="border: 1px dashed #555; padding: 20px; width: 100%; border-radius: 8px; color: white;">
                     </div>
                     <div class="modal-buttons" style="margin-top: 20px;">
                         <button type="submit" class="btn btn-primary" id="importSubmitBtn">Start Import</button>
@@ -318,11 +343,11 @@
 
             function render(list) {
                 if (!tbody) return;
-                
+
                 const totalItems = list.length;
                 const totalPages = Math.ceil(totalItems / pageSize);
                 if (currentPage > totalPages) currentPage = totalPages || 1;
-                
+
                 const start = (currentPage - 1) * pageSize;
                 const end = start + pageSize;
                 const paginatedItems = list.slice(start, end);
@@ -331,7 +356,7 @@
                 document.getElementById('startIndex').textContent = totalItems === 0 ? 0 : start + 1;
                 document.getElementById('endIndex').textContent = Math.min(end, totalItems);
                 document.getElementById('currentPageIndicator').textContent = `Page ${currentPage} / ${totalPages || 1}`;
-                
+
                 document.getElementById('prevPage').disabled = (currentPage === 1);
                 document.getElementById('nextPage').disabled = (currentPage === totalPages || totalPages === 0);
 
@@ -356,12 +381,12 @@
                 </tr>`).join('');
 
                 // Pagination logic
-                document.getElementById('prevPage').onclick = () => { if(currentPage > 1) { currentPage--; render(list); }};
-                document.getElementById('nextPage').onclick = () => { if(currentPage < totalPages) { currentPage++; render(list); }};
+                document.getElementById('prevPage').onclick = () => { if (currentPage > 1) { currentPage--; render(list); } };
+                document.getElementById('nextPage').onclick = () => { if (currentPage < totalPages) { currentPage++; render(list); } };
             }
 
             // ─── GLOBAL: DELETE ───────────────────────────────────────────────────
-            window.__ivDelete = async function(id) {
+            window.__ivDelete = async function (id) {
                 if (!confirm('Delete this industrial visit?')) return;
                 const btn = document.getElementById('del-btn-' + id);
                 try {
@@ -375,7 +400,7 @@
             };
 
             // ─── GLOBAL: EDIT (open modal) ────────────────────────────────────────
-            window.__ivEdit = function(id) {
+            window.__ivEdit = function (id) {
                 const v = industrialData.find(item => String(item.id) === String(id));
                 if (!v) return;
                 document.getElementById('ei-id').value = v.id;
@@ -393,8 +418,8 @@
 
             document.getElementById('industrialSearchUnified').addEventListener('input', e => {
                 const q = e.target.value.toLowerCase();
-                render(industrialData.filter(v => 
-                    (v.organization_name || '').toLowerCase().includes(q) || 
+                render(industrialData.filter(v =>
+                    (v.organization_name || '').toLowerCase().includes(q) ||
                     (v.program_name || '').toLowerCase().includes(q) ||
                     (v.batch || '').toLowerCase().includes(q) ||
                     (v.city || '').toLowerCase().includes(q)
@@ -488,4 +513,5 @@
         })();
     </script>
 </body>
+
 </html>

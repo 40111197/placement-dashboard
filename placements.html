@@ -13,26 +13,32 @@
 
 <body>
     <!-- TOP NAVIGATION BAR -->
-        <aside class="sidebar">
+    <aside class="sidebar">
         <div class="sidebar-header">
-            <img src="https://upload.wikimedia.org/wikipedia/en/b/bc/Rashtriya_Raksha_University_logo.png" alt="RRU Logo">
+            <img src="https://upload.wikimedia.org/wikipedia/en/b/bc/Rashtriya_Raksha_University_logo.png"
+                alt="RRU Logo">
         </div>
         <nav class="sidebar-nav">
             <a href="dashboard.html" class="sidebar-link"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a>
             <a href="students.html" class="sidebar-link"><i class="bi bi-people-fill"></i> <span>Students</span></a>
-            <a href="internships.html" class="sidebar-link"><i class="bi bi-person-workspace"></i> <span>Internships</span></a>
-            <a href="field-visits.html" class="sidebar-link"><i class="bi bi-pin-map-fill"></i> <span>Field Visits</span></a>
-            <a href="industrial-visits.html" class="sidebar-link"><i class="bi bi-buildings-fill"></i> <span>Industrial Visits</span></a>
-            <a href="placements.html" class="sidebar-link active"><i class="bi bi-briefcase-fill"></i> <span>Placements</span></a>
+            <a href="internships.html" class="sidebar-link"><i class="bi bi-person-workspace"></i>
+                <span>Internships</span></a>
+            <a href="field-visits.html" class="sidebar-link"><i class="bi bi-pin-map-fill"></i> <span>Field
+                    Visits</span></a>
+            <a href="industrial-visits.html" class="sidebar-link"><i class="bi bi-buildings-fill"></i> <span>Industrial
+                    Visits</span></a>
+            <a href="placements.html" class="sidebar-link"><i class="bi bi-briefcase-fill"></i>
+                <span>Placements</span></a>
             <a href="external-jobs.html" class="sidebar-link"><i class="bi bi-globe"></i> <span>Job Offers</span></a>
             <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-fill"></i> <span>Reports</span></a>
-            <a href="settings.html" class="sidebar-link"><i class="bi bi-gear-fill"></i> <span>Settings</span></a>
+            <a href="settings.html" class="sidebar-link active"><i class="bi bi-gear-fill"></i>
+                <span>Settings</span></a>
         </nav>
         <div class="sidebar-footer">
             <div class="user-profile">
-                <div class="avatar">A</div>
+                <div class="avatar">CD</div>
                 <div class="user-info">
-                    <div class="name">admin@rru.ac.in</div>
+                    <div class="name">CD PUDUCHERRY CAMPUS</div>
                     <div class="role">Admin</div>
                 </div>
             </div>
@@ -42,99 +48,100 @@
     <!-- Main Content -->
     <div class="dashboard-layout-container">
 
-            <!-- TOP HEADER ROW -->
-            <div class="top-header-row">
+        <!-- TOP HEADER ROW -->
+        <div class="top-header-row">
+            <div>
+                <h1>Placements List</h1>
+            </div>
+            <div class="header-actions-unified">
+                <input type="text" id="placementSearchUnified" class="search-bar-unified"
+                    placeholder="Search placements...">
+                <button class="select-unified"
+                    onclick="document.getElementById('importPlacementModal').style.display='flex'"
+                    style="width: auto; padding: 10px 15px;">
+                    <i class="bi bi-file-earmark-excel"></i> Import
+                </button>
+                <button class="select-unified" onclick="exportData('placements')"
+                    style="width: auto; padding: 10px 15px;">
+                    <i class="bi bi-download"></i> Export
+                </button>
+                <button class="select-unified" id="openAddPlacementModal"
+                    style="width: auto; padding: 10px 15px; background: var(--accent-blue);">
+                    + Add Placement
+                </button>
+            </div>
+        </div>
+
+        <div class="widget-panel">
+            <div class="table-container data-table-container">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>NAME</th>
+                            <th class="no-wrap">ENROLLMENT NUMBER</th>
+                            <th>PROGRAMME</th>
+                            <th>BATCH</th>
+                            <th>ROLE</th>
+                            <th>COMPANY</th>
+                            <th>CITY</th>
+                            <th>SALARY</th>
+                            <th>ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="placementsTableBody">
+                        <tr>
+                            <td colspan="9" style="text-align:center;padding:40px;opacity:0.5;">Loading
+                                placements...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PAGINATION CONTROLS -->
+            <div class="pagination-controls"
+                style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
+                <div class="pagination-info" style="font-size: 13px; opacity: 0.6;">
+                    Showing <span id="startIndex">0</span> - <span id="endIndex">0</span> of <span
+                        id="totalItems">0</span> placements
+                </div>
+                <div class="pagination-btns" style="display: flex; gap: 10px;">
+                    <button id="prevPage" class="select-unified" style="padding: 5px 15px; width: auto;"><i
+                            class="bi bi-chevron-left"></i> Prev</button>
+                    <span id="currentPageIndicator"
+                        style="display: flex; align-items: center; font-size: 13px; font-weight: 600; min-width: 60px; justify-content: center;">Page
+                        1</span>
+                    <button id="nextPage" class="select-unified" style="padding: 5px 15px; width: auto;">Next <i
+                            class="bi bi-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="app-footer" style="padding: 40px 0; border-top: 1px solid var(--border); margin-top: 30px;">
+            <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 40px;">
                 <div>
-                    <h1>Placements List</h1>
+                    <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Rashtriya Raksha University
+                    </h3>
+                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.8;">Puducherry Campus,
+                        Pondicherry
+                        Institute of Hotel Management & Catering Technology [PIHMCT]<br>Opp To Mahalakshmi Nagar,
+                        Murungapakkam, Puducherry – 605004</p>
                 </div>
-                <div class="header-actions-unified">
-                    <input type="text" id="placementSearchUnified" class="search-bar-unified"
-                        placeholder="Search placements...">
-                    <button class="select-unified"
-                        onclick="document.getElementById('importPlacementModal').style.display='flex'"
-                        style="width: auto; padding: 10px 15px;">
-                        <i class="bi bi-file-earmark-excel"></i> Import
-                    </button>
-                    <button class="select-unified" onclick="exportData('placements')"
-                        style="width: auto; padding: 10px 15px;">
-                        <i class="bi bi-download"></i> Export
-                    </button>
-                    <button class="select-unified" id="openAddPlacementModal"
-                        style="width: auto; padding: 10px 15px; background: var(--accent-blue);">
-                        + Add Placement
-                    </button>
+                <div>
+                    <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Contact</h3>
+                    <p style="font-size: 12px; color: var(--text-muted);">Email: campusdirector@rru.ac.in</p>
+                    <p style="font-size: 12px; color: var(--text-muted);">Phone: +91 79 XXXXXXXX</p>
                 </div>
-            </div>
-
-            <div class="widget-panel">
-                <div class="table-container data-table-container">
-                    <table class="premium-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>NAME</th>
-                                <th class="no-wrap">ENROLLMENT NUMBER</th>
-                                <th>PROGRAMME</th>
-                                <th>BATCH</th>
-                                <th>ROLE</th>
-                                <th>COMPANY</th>
-                                <th>CITY</th>
-                                <th>SALARY</th>
-                                <th>ACTIONS</th>
-                            </tr>
-                        </thead>
-                        <tbody id="placementsTableBody">
-                            <tr>
-                                <td colspan="9" style="text-align:center;padding:40px;opacity:0.5;">Loading
-                                    placements...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- PAGINATION CONTROLS -->
-                <div class="pagination-controls"
-                    style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
-                    <div class="pagination-info" style="font-size: 13px; opacity: 0.6;">
-                        Showing <span id="startIndex">0</span> - <span id="endIndex">0</span> of <span
-                            id="totalItems">0</span> placements
-                    </div>
-                    <div class="pagination-btns" style="display: flex; gap: 10px;">
-                        <button id="prevPage" class="select-unified" style="padding: 5px 15px; width: auto;"><i
-                                class="bi bi-chevron-left"></i> Prev</button>
-                        <span id="currentPageIndicator"
-                            style="display: flex; align-items: center; font-size: 13px; font-weight: 600; min-width: 60px; justify-content: center;">Page
-                            1</span>
-                        <button id="nextPage" class="select-unified" style="padding: 5px 15px; width: auto;">Next <i
-                                class="bi bi-chevron-right"></i></button>
-                    </div>
+                <div>
+                    <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Follow</h3>
+                    <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
+                            style="color: inherit; text-decoration: none;">Instagram</a></p>
+                    <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
+                            style="color: inherit; text-decoration: none;">LinkedIn</a></p>
                 </div>
             </div>
-
-            <!-- FOOTER -->
-                        <footer class="app-footer"
-                style="padding: 40px 0; border-top: 1px solid var(--border); margin-top: 30px;">
-                <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 40px;">
-                    <div>
-                        <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Rashtriya Raksha University</h3>
-                        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.8;">Puducherry Campus, Pondicherry
-                            Institute of Hotel Management & Catering Technology [PIHMCT]<br>Opp To Mahalakshmi Nagar,
-                            Murungapakkam, Puducherry – 605004</p>
-                    </div>
-                    <div>
-                        <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Contact</h3>
-                        <p style="font-size: 12px; color: var(--text-muted);">Email: campusdirector@rru.ac.in</p>
-                        <p style="font-size: 12px; color: var(--text-muted);">Phone: +91 79 XXXXXXXX</p>
-                    </div>
-                    <div>
-                        <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Follow</h3>
-                        <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
-                                style="color: inherit; text-decoration: none;">Instagram</a></p>
-                        <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
-                                style="color: inherit; text-decoration: none;">LinkedIn</a></p>
-                    </div>
-                </div>
-            </footer>
+        </footer>
     </div>
 
     <!-- ADD PLACEMENT MODAL -->
@@ -147,7 +154,8 @@
             <form class="modal-form" id="addPlacementForm">
                 <div class="form-group"><input type="text" id="mp-enrollment" placeholder=" " required><label>Enrollment
                         Number</label></div>
-                <div class="form-group"><input type="text" id="mp-programme" placeholder=" " required><label>Programme</label>
+                <div class="form-group"><input type="text" id="mp-programme" placeholder=" "
+                        required><label>Programme</label>
                 </div>
                 <div class="form-group"><input type="text" id="mp-batch" placeholder=" " required><label>Batch</label>
                 </div>
@@ -177,7 +185,8 @@
                 <input type="hidden" id="ep-id">
                 <div class="form-group"><input type="text" id="ep-enrollment" placeholder=" " required><label>Enrollment
                         Number</label></div>
-                <div class="form-group"><input type="text" id="ep-programme" placeholder=" " required><label>Programme</label>
+                <div class="form-group"><input type="text" id="ep-programme" placeholder=" "
+                        required><label>Programme</label>
                 </div>
                 <div class="form-group"><input type="text" id="ep-batch" placeholder=" " required><label>Batch</label>
                 </div>

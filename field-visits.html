@@ -271,7 +271,9 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* Section divider */
@@ -331,26 +333,32 @@
 
 <body>
     <!-- TOP NAVIGATION BAR -->
-        <aside class="sidebar">
+    <aside class="sidebar">
         <div class="sidebar-header">
-            <img src="https://upload.wikimedia.org/wikipedia/en/b/bc/Rashtriya_Raksha_University_logo.png" alt="RRU Logo">
+            <img src="https://upload.wikimedia.org/wikipedia/en/b/bc/Rashtriya_Raksha_University_logo.png"
+                alt="RRU Logo">
         </div>
         <nav class="sidebar-nav">
             <a href="dashboard.html" class="sidebar-link"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a>
             <a href="students.html" class="sidebar-link"><i class="bi bi-people-fill"></i> <span>Students</span></a>
-            <a href="internships.html" class="sidebar-link"><i class="bi bi-person-workspace"></i> <span>Internships</span></a>
-            <a href="field-visits.html" class="sidebar-link active"><i class="bi bi-pin-map-fill"></i> <span>Field Visits</span></a>
-            <a href="industrial-visits.html" class="sidebar-link"><i class="bi bi-buildings-fill"></i> <span>Industrial Visits</span></a>
-            <a href="placements.html" class="sidebar-link"><i class="bi bi-briefcase-fill"></i> <span>Placements</span></a>
+            <a href="internships.html" class="sidebar-link"><i class="bi bi-person-workspace"></i>
+                <span>Internships</span></a>
+            <a href="field-visits.html" class="sidebar-link"><i class="bi bi-pin-map-fill"></i> <span>Field
+                    Visits</span></a>
+            <a href="industrial-visits.html" class="sidebar-link"><i class="bi bi-buildings-fill"></i> <span>Industrial
+                    Visits</span></a>
+            <a href="placements.html" class="sidebar-link"><i class="bi bi-briefcase-fill"></i>
+                <span>Placements</span></a>
             <a href="external-jobs.html" class="sidebar-link"><i class="bi bi-globe"></i> <span>Job Offers</span></a>
             <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-fill"></i> <span>Reports</span></a>
-            <a href="settings.html" class="sidebar-link"><i class="bi bi-gear-fill"></i> <span>Settings</span></a>
+            <a href="settings.html" class="sidebar-link active"><i class="bi bi-gear-fill"></i>
+                <span>Settings</span></a>
         </nav>
         <div class="sidebar-footer">
             <div class="user-profile">
-                <div class="avatar">A</div>
+                <div class="avatar">CD</div>
                 <div class="user-info">
-                    <div class="name">admin@rru.ac.in</div>
+                    <div class="name">CD PUDUCHERRY CAMPUS</div>
                     <div class="role">Admin</div>
                 </div>
             </div>
@@ -360,99 +368,100 @@
     <!-- Main Content -->
     <div class="dashboard-layout-container">
 
-            <!-- TOP HEADER ROW -->
-            <div class="top-header-row">
+        <!-- TOP HEADER ROW -->
+        <div class="top-header-row">
+            <div>
+                <h1>Field Visits List</h1>
+            </div>
+            <div class="header-actions-unified">
+                <input type="text" id="fieldSearchUnified" class="search-bar-unified"
+                    placeholder="Search field visits...">
+                <button class="select-unified"
+                    onclick="document.getElementById('importFieldVisitModal').style.display='flex'"
+                    style="width: auto; padding: 10px 15px;">
+                    <i class="bi bi-file-earmark-excel"></i> Import
+                </button>
+                <button class="select-unified" onclick="exportData('field_visits')"
+                    style="width: auto; padding: 10px 15px;">
+                    <i class="bi bi-download"></i> Export
+                </button>
+                <button class="select-unified" id="addStudentBtn"
+                    style="width: auto; padding: 10px 15px; background: var(--accent-blue);">
+                    + Add Field Visit
+                </button>
+            </div>
+        </div>
+
+        <div class="widget-panel">
+            <div class="table-container data-table-container">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th>SR. NO</th>
+                            <th class="no-wrap">ORGANIZATION VISITED</th>
+                            <th class="no-wrap">VISIT DATE</th>
+                            <th>STUDENTS</th>
+                            <th>PROGRAMME(S)</th>
+                            <th>BATCH</th>
+                            <th>STAFF COUNT</th>
+                            <th>LEAD STAFF</th>
+                            <th class="no-wrap">TYPE</th>
+                            <th class="no-wrap">CITY</th>
+                            <th>ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="11" style="text-align:center;padding:40px;opacity:0.5;">Loading field
+                                visits...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PAGINATION CONTROLS -->
+            <div class="pagination-controls"
+                style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
+                <div class="pagination-info" style="font-size: 13px; opacity: 0.6;">
+                    Showing <span id="startIndex">0</span> - <span id="endIndex">0</span> of <span
+                        id="totalItems">0</span> field visits
+                </div>
+                <div class="pagination-btns" style="display: flex; gap: 10px;">
+                    <button id="prevPage" class="select-unified" style="padding: 5px 15px; width: auto;"><i
+                            class="bi bi-chevron-left"></i> Prev</button>
+                    <span id="currentPageIndicator"
+                        style="display: flex; align-items: center; font-size: 13px; font-weight: 600; min-width: 60px; justify-content: center;">Page
+                        1</span>
+                    <button id="nextPage" class="select-unified" style="padding: 5px 15px; width: auto;">Next <i
+                            class="bi bi-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="app-footer" style="padding: 40px 0; border-top: 1px solid var(--border); margin-top: 30px;">
+            <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 40px;">
                 <div>
-                    <h1>Field Visits List</h1>
+                    <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Rashtriya Raksha University
+                    </h3>
+                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.8;">Puducherry Campus,
+                        Pondicherry
+                        Institute of Hotel Management &amp; Catering Technology [PIHMCT]<br>Opp To Mahalakshmi Nagar,
+                        Murungapakkam, Puducherry – 605004</p>
                 </div>
-                <div class="header-actions-unified">
-                    <input type="text" id="fieldSearchUnified" class="search-bar-unified"
-                        placeholder="Search field visits...">
-                    <button class="select-unified"
-                        onclick="document.getElementById('importFieldVisitModal').style.display='flex'"
-                        style="width: auto; padding: 10px 15px;">
-                        <i class="bi bi-file-earmark-excel"></i> Import
-                    </button>
-                    <button class="select-unified" onclick="exportData('field_visits')"
-                        style="width: auto; padding: 10px 15px;">
-                        <i class="bi bi-download"></i> Export
-                    </button>
-                    <button class="select-unified" id="addStudentBtn"
-                        style="width: auto; padding: 10px 15px; background: var(--accent-blue);">
-                        + Add Field Visit
-                    </button>
+                <div>
+                    <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Contact</h3>
+                    <p style="font-size: 12px; color: var(--text-muted);">Email: campusdirector@rru.ac.in</p>
+                    <p style="font-size: 12px; color: var(--text-muted);">Phone: +91 79 XXXXXXXX</p>
                 </div>
-            </div>
-
-            <div class="widget-panel">
-                <div class="table-container data-table-container">
-                    <table class="premium-table">
-                        <thead>
-                            <tr>
-                                <th>SR. NO</th>
-                                <th class="no-wrap">ORGANIZATION VISITED</th>
-                                <th class="no-wrap">VISIT DATE</th>
-                                <th>STUDENTS</th>
-                                <th>PROGRAMME(S)</th>
-                                <th>BATCH</th>
-                                <th>STAFF COUNT</th>
-                                <th>LEAD STAFF</th>
-                                <th class="no-wrap">TYPE</th>
-                                <th class="no-wrap">CITY</th>
-                                <th>ACTIONS</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            <tr>
-                                <td colspan="11" style="text-align:center;padding:40px;opacity:0.5;">Loading field
-                                    visits...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- PAGINATION CONTROLS -->
-                <div class="pagination-controls"
-                    style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
-                    <div class="pagination-info" style="font-size: 13px; opacity: 0.6;">
-                        Showing <span id="startIndex">0</span> - <span id="endIndex">0</span> of <span
-                            id="totalItems">0</span> field visits
-                    </div>
-                    <div class="pagination-btns" style="display: flex; gap: 10px;">
-                        <button id="prevPage" class="select-unified" style="padding: 5px 15px; width: auto;"><i
-                                class="bi bi-chevron-left"></i> Prev</button>
-                        <span id="currentPageIndicator"
-                            style="display: flex; align-items: center; font-size: 13px; font-weight: 600; min-width: 60px; justify-content: center;">Page
-                            1</span>
-                        <button id="nextPage" class="select-unified" style="padding: 5px 15px; width: auto;">Next <i
-                                class="bi bi-chevron-right"></i></button>
-                    </div>
+                <div>
+                    <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Follow</h3>
+                    <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
+                            style="color: inherit; text-decoration: none;">Instagram</a></p>
+                    <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
+                            style="color: inherit; text-decoration: none;">LinkedIn</a></p>
                 </div>
             </div>
-
-            <footer class="app-footer"
-                style="padding: 40px 0; border-top: 1px solid var(--border); margin-top: 30px;">
-                <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 40px;">
-                    <div>
-                        <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Rashtriya Raksha University</h3>
-                        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.8;">Puducherry Campus, Pondicherry
-                            Institute of Hotel Management &amp; Catering Technology [PIHMCT]<br>Opp To Mahalakshmi Nagar,
-                            Murungapakkam, Puducherry – 605004</p>
-                    </div>
-                    <div>
-                        <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Contact</h3>
-                        <p style="font-size: 12px; color: var(--text-muted);">Email: campusdirector@rru.ac.in</p>
-                        <p style="font-size: 12px; color: var(--text-muted);">Phone: +91 79 XXXXXXXX</p>
-                    </div>
-                    <div>
-                        <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Follow</h3>
-                        <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
-                                style="color: inherit; text-decoration: none;">Instagram</a></p>
-                        <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
-                                style="color: inherit; text-decoration: none;">LinkedIn</a></p>
-                    </div>
-                </div>
-            </footer>
+        </footer>
 
     </div><!-- end dashboard-layout-container -->
 
@@ -733,7 +742,7 @@
             }
 
             // ─── GLOBAL: ADD PROGRAMME ROW ───────────────────────────────────────
-            window.addProgramRow = function(prefix, prog = '', count = '') {
+            window.addProgramRow = function (prefix, prog = '', count = '') {
                 const container = document.getElementById(prefix + '-program-container');
                 const rowId = 'prog-row-' + Date.now() + Math.random().toString(36).substring(7);
                 const row = document.createElement('div');
@@ -761,7 +770,7 @@
             };
 
             // ─── GLOBAL: ADD STAFF ROW ────────────────────────────────────────────
-            window.addStaffRow = function(prefix, staffName = '') {
+            window.addStaffRow = function (prefix, staffName = '') {
                 const container = document.getElementById(prefix + '-staff-container');
                 const rowId = 'staff-row-' + Date.now() + Math.random().toString(36).substring(7);
                 const row = document.createElement('div');
@@ -887,7 +896,7 @@
             });
 
             // ─── GLOBAL: DELETE ───────────────────────────────────────────────────
-            window.__fvDelete = async function(id) {
+            window.__fvDelete = async function (id) {
                 console.log('[FV] Delete clicked for id:', id);
                 if (!confirm('Delete this field visit?')) return;
                 const btn = document.getElementById('del-btn-' + id);
@@ -904,7 +913,7 @@
             };
 
             // ─── GLOBAL: EDIT (open modal) ────────────────────────────────────────
-            window.__fvEdit = function(id) {
+            window.__fvEdit = function (id) {
                 console.log('[FV] Edit clicked for id:', id);
                 const v = fieldVisitsData.find(item => String(item.id) === String(id));
                 if (!v) { console.warn('[FV] Edit: record not found for id:', id); return; }
