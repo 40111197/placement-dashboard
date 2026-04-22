@@ -849,7 +849,7 @@ async function parseExcelFile(file, type) {
                             type_of_organization: col(nr, 'Type of Organization', 'Organization Type', 'organization_type', 'type_of_organization')
                         };
                     }).filter(r => r.enrollment_number);
-                } else if (type === 'field_visits') {
+                } else if (type === 'field_visits' || type === 'field_visited') {
                     rows = raw.map(r => {
                         const nr = normalizeRow(r);
                         return {
@@ -858,12 +858,13 @@ async function parseExcelFile(file, type) {
                             visit_type: col(nr, 'Visit Type', 'Type', 'type', 'visit_type') || 'Government',
                             no_of_student_visited: parseInt(col(nr, 'No_of_Student_Visited', 'No of Students', 'No of Student Visited', 'Students', 'students_visited') || 0),
                             program_name: col(nr, 'Program_Name', 'Programme', 'programme', 'program'),
+                            batch: col(nr, 'Batch', 'batch'),
                             no_of_staff_visited: parseInt(col(nr, 'No_of_Staff_Visited', 'No of Staff', 'No of Staff Visited', 'Staff', 'staff_visited') || 0),
                             staff_name: col(nr, 'Staff_Name', 'Faculty Coordinator', 'Faculty', 'Coordinator', 'staff_name', 'faculty'),
                             city: col(nr, 'City', 'Location', 'Place', 'city')
                         };
                     }).filter(r => r.field_visited && r.visited_date);
-                } else if (type === 'industrial_visited') {
+                } else if (type === 'industrial_visits' || type === 'industrial_visited') {
                     rows = raw.map(r => {
                         const nr = normalizeRow(r);
                         return {
@@ -872,6 +873,7 @@ async function parseExcelFile(file, type) {
                             visit_type: col(nr, 'Visit Type', 'Type', 'type', 'visit_type') || 'Private',
                             no_of_student_visited: parseInt(col(nr, 'No_of_Student_Visited', 'No of Students', 'No of Student Visited', 'Students', 'students_visited') || 0),
                             program_name: col(nr, 'Program_Name', 'Programme', 'programme', 'program'),
+                            batch: col(nr, 'Batch', 'batch'),
                             no_of_staff_visited: parseInt(col(nr, 'No_of_Staff_Visited', 'No of Staff', 'No of Staff Visited', 'Staff', 'staff_visited') || 0),
                             staff_name: col(nr, 'Staff_Name', 'Faculty Coordinator', 'Faculty', 'Coordinator', 'staff_name', 'faculty'),
                             city: col(nr, 'City', 'Location', 'Place', 'city')

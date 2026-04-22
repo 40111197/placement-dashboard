@@ -103,42 +103,38 @@ body {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    height: var(--navbar-height);
-    background: var(--navbar-bg);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    bottom: 0;
+    width: 80px;
+    background: #0d0f21;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
     display: flex;
-    flex-direction: row;
-    align-items: center;
+    flex-direction: column;
     z-index: 1000;
+    transition: all 0.3s ease;
 }
 
 .sidebar-header {
-    padding: 0 24px;
-    height: 100%;
+    padding: 20px 0;
     display: flex;
-    align-items: center;
     justify-content: center;
-    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .sidebar-header img {
-    width: 42px;
-    height: 42px;
+    width: 32px;
+    height: 32px;
     object-fit: contain;
-    border-radius: 8px;
 }
 
 .sidebar-nav {
-    padding: 0 20px;
+    padding: 15px 5px;
     flex: 1;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
     gap: 12px;
-    height: 100%;
-    overflow-x: auto;
+    overflow-y: auto;
 }
 .sidebar-nav::-webkit-scrollbar {
     display: none;
@@ -149,34 +145,27 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    width: 68px;
-    height: 60px;
-    padding: 6px 4px;
-    color: #64748b;
+    gap: 4px;
+    width: 64px;
+    height: 64px;
+    color: #94a3b8;
     text-decoration: none;
-    border-radius: 10px;
-    font-size: 9.5px;
+    border-radius: 12px;
+    font-size: 9px;
     font-weight: 500;
-    transition: all 0.18s ease;
+    transition: all 0.2s ease;
     text-align: center;
-    line-height: 1.1;
-    letter-spacing: 0.2px;
 }
 
 .sidebar-link i {
-    font-size: 20px;
-    line-height: 1;
+    font-size: 22px;
+    margin-bottom: 2px;
     transition: color 0.18s;
 }
 
 .sidebar-link span {
-    font-size: 9px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 60px;
     display: block;
+    line-height: 1;
 }
 
 .sidebar-link:hover {
@@ -185,10 +174,10 @@ body {
 }
 
 .sidebar-link.active {
-    background: rgba(17, 161, 213, 0.22);
-    color: var(--navy-light);
-    font-weight: 600;
-    box-shadow: inset 0 -2px 0 var(--navy-light);
+    background: rgba(17, 161, 213, 0.1);
+    color: #fff;
+    border: 1px solid rgba(17, 161, 213, 0.5);
+    box-shadow: 0 0 10px rgba(17, 161, 213, 0.2);
 }
 
 .sidebar-link.active i {
@@ -196,19 +185,37 @@ body {
 }
 
 .sidebar-footer {
-    padding: 0 24px;
-    border-left: 1px solid rgba(255, 255, 255, 0.06);
-    height: 100%;
+    padding: 20px 0;
     display: flex;
-    flex-direction: row;
-    align-items: center;
+    justify-content: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .user-profile {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    text-align: center;
+}
+
+.user-profile .user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.user-profile .name {
+    font-size: 9px;
+    color: #cbd5e1;
+    line-height: 1.2;
+    word-break: break-word;
+    max-width: 70px;
+}
+
+.user-profile .role {
+    font-size: 8px;
+    color: #94a3b8;
 }
 
 .user-profile .avatar {
@@ -230,10 +237,6 @@ body {
     transform: scale(1.08);
 }
 
-.user-profile .user-info {
-    display: none;
-    /* Hidden — sidebar is icon-only */
-}
 
 /* ── LAYOUT WRAPPERS ───────────────────────────────────── */
 .container {
@@ -243,11 +246,11 @@ body {
 
 .main-content,
 .dashboard-layout-container {
-    margin-left: 0 !important;
-    margin-top: var(--navbar-height) !important;
-    padding: 32px 36px 60px !important;
-    width: 100% !important;
-    min-height: calc(100vh - var(--navbar-height));
+    margin-left: 80px !important;
+    margin-top: 0 !important;
+    padding: 32px 40px 60px !important;
+    width: calc(100% - 80px) !important;
+    min-height: 100vh;
 }
 
 

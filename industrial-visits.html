@@ -76,6 +76,7 @@
                                 <th>VISIT DATE</th>
                                 <th>STUDENTS</th>
                                 <th>PROGRAM</th>
+                                <th>BATCH</th>
                                 <th>STAFF COUNT</th>
                                 <th>LEAD STAFF</th>
                                 <th class="no-wrap">TYPE</th>
@@ -84,7 +85,7 @@
                             </tr>
                         </thead>
                         <tbody id="tableBody">
-                            <tr><td colspan="10" style="text-align:center;padding:40px;opacity:0.5;">Loading industrial visits...</td></tr>
+                             <tr><td colspan="11" style="text-align:center;padding:40px;opacity:0.5;">Loading industrial visits...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -146,6 +147,10 @@
                     <div class="form-group">
                         <label class="form-label">Visit Date</label>
                         <input type="text" id="mi-visit_date" class="form-input" placeholder="e.g. 15.02.2024" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Batch</label>
+                        <input type="text" id="mi-batch" class="form-input" placeholder="e.g. 2024-25">
                     </div>
                 </div>
 
@@ -210,6 +215,10 @@
                     <div class="form-group">
                         <label class="form-label">Visit Date</label>
                         <input type="text" id="ei-visit_date" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Batch</label>
+                        <input type="text" id="ei-batch" class="form-input" placeholder="e.g. 2024-25">
                     </div>
                 </div>
 
@@ -301,7 +310,7 @@
                     industrialData = await getIndustrialVisits() || [];
                     render(industrialData);
                 } catch (e) {
-                    if (tbody) tbody.innerHTML = `<tr><td colspan="10" style="padding:24px;text-align:center;color:#f87171">${e.message}</td></tr>`;
+                    if (tbody) tbody.innerHTML = `<tr><td colspan="11" style="padding:24px;text-align:center;color:#f87171">${e.message}</td></tr>`;
                 }
             }
 
@@ -333,14 +342,15 @@
                     <td>${esc(v.visit_date || '—')}</td>
                     <td>${esc(v.no_of_student_visited || '0')}</td>
                     <td style="color:#94a3b8;">${esc(v.program_name || '—')}</td>
+                    <td style="text-align:center; font-weight:600; color: var(--navy-light);">${esc(v.batch || '—')}</td>
                     <td>${esc(v.no_of_staff_visited || '0')}</td>
                     <td style="font-weight:600;">${esc(v.staff_name || '—')}</td>
                     <td><span class="status-pill ${String(v.visit_type || '').toLowerCase() === 'private' ? 'not-placed' : 'placed'}" style="font-size:10px; padding: 2px 8px;">${esc(v.visit_type || 'Government')}</span></td>
                     <td>${esc(v.city || '—')}</td>
                     <td>
                         <div style="display:flex;gap:6px;justify-content:center; align-items:center;">
-                            <button class="action-icon btn-edit" data-id="${v.id}" title="Edit"><i class="bi bi-pencil-square"></i></button>
-                            <button class="action-icon btn-remove" data-id="${v.id}" title="Delete"><i class="bi bi-trash"></i></button>
+                            <button class="action-icon btn-edit" onclick="window.__ivEdit('${v.id}')" title="Edit"><i class="bi bi-pencil-square"></i></button>
+                            <button class="action-icon btn-remove" id="del-btn-${v.id}" onclick="window.__ivDelete('${v.id}')" title="Delete"><i class="bi bi-trash"></i></button>
                         </div>
                     </td>
                 </tr>`).join('');
@@ -348,42 +358,45 @@
                 // Pagination logic
                 document.getElementById('prevPage').onclick = () => { if(currentPage > 1) { currentPage--; render(list); }};
                 document.getElementById('nextPage').onclick = () => { if(currentPage < totalPages) { currentPage++; render(list); }};
-
-                // Listeners for Delete/Edit
-                tbody.querySelectorAll('.btn-remove').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        const target = e.target.closest('.btn-remove');
-                        if (!confirm('Delete this industrial visit?')) return;
-                        try { await deleteIndustrialVisit(target.dataset.id); load(); }
-                        catch (err) { alert('Delete failed: ' + err.message); }
-                    });
-                });
-
-                tbody.querySelectorAll('.btn-edit').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const target = e.target.closest('.btn-edit');
-                        const id = target.dataset.id;
-                        const v = industrialData.find(item => item.id == id);
-                        if (!v) return;
-                        document.getElementById('ei-id').value = v.id;
-                        document.getElementById('ei-org_name').value = v.organization_name || '';
-                        document.getElementById('ei-visit_date').value = v.visit_date || '';
-                        document.getElementById('ei-no_of_students').value = v.no_of_student_visited || 0;
-                        document.getElementById('ei-program_name').value = v.program_name || '';
-                        document.getElementById('ei-no_of_staff').value = v.no_of_staff_visited || 0;
-                        document.getElementById('ei-staff_name').value = v.staff_name || '';
-                        document.getElementById('ei-visit_type').value = v.visit_type || 'Government';
-                        document.getElementById('ei-city').value = v.city || '';
-                        document.getElementById('editIndustrialVisitModal').style.display = 'flex';
-                    });
-                });
             }
+
+            // ─── GLOBAL: DELETE ───────────────────────────────────────────────────
+            window.__ivDelete = async function(id) {
+                if (!confirm('Delete this industrial visit?')) return;
+                const btn = document.getElementById('del-btn-' + id);
+                try {
+                    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-hourglass-split"></i>'; }
+                    await deleteIndustrialVisit(id);
+                    load();
+                } catch (err) {
+                    alert('Delete failed: ' + err.message);
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-trash"></i>'; }
+                }
+            };
+
+            // ─── GLOBAL: EDIT (open modal) ────────────────────────────────────────
+            window.__ivEdit = function(id) {
+                const v = industrialData.find(item => String(item.id) === String(id));
+                if (!v) return;
+                document.getElementById('ei-id').value = v.id;
+                document.getElementById('ei-org_name').value = v.organization_name || '';
+                document.getElementById('ei-visit_date').value = v.visit_date || '';
+                document.getElementById('ei-no_of_students').value = v.no_of_student_visited || 0;
+                document.getElementById('ei-program_name').value = v.program_name || '';
+                document.getElementById('ei-batch').value = v.batch || '';
+                document.getElementById('ei-no_of_staff').value = v.no_of_staff_visited || 0;
+                document.getElementById('ei-staff_name').value = v.staff_name || '';
+                document.getElementById('ei-visit_type').value = v.visit_type || 'Government';
+                document.getElementById('ei-city').value = v.city || '';
+                document.getElementById('editIndustrialVisitModal').style.display = 'flex';
+            };
 
             document.getElementById('industrialSearchUnified').addEventListener('input', e => {
                 const q = e.target.value.toLowerCase();
                 render(industrialData.filter(v => 
                     (v.organization_name || '').toLowerCase().includes(q) || 
                     (v.program_name || '').toLowerCase().includes(q) ||
+                    (v.batch || '').toLowerCase().includes(q) ||
                     (v.city || '').toLowerCase().includes(q)
                 ));
             });
@@ -401,6 +414,7 @@
                         visit_type: document.getElementById('mi-visit_type').value,
                         no_of_student_visited: parseInt(document.getElementById('mi-no_of_students').value),
                         program_name: document.getElementById('mi-program_name').value,
+                        batch: document.getElementById('mi-batch').value,
                         no_of_staff_visited: parseInt(document.getElementById('mi-no_of_staff').value),
                         staff_name: document.getElementById('mi-staff_name').value,
                         city: document.getElementById('mi-city').value
@@ -427,6 +441,7 @@
                         visit_type: document.getElementById('ei-visit_type').value,
                         no_of_student_visited: parseInt(document.getElementById('ei-no_of_students').value),
                         program_name: document.getElementById('ei-program_name').value,
+                        batch: document.getElementById('ei-batch').value,
                         no_of_staff_visited: parseInt(document.getElementById('ei-no_of_staff').value),
                         staff_name: document.getElementById('ei-staff_name').value,
                         city: document.getElementById('ei-city').value

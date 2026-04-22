@@ -62,9 +62,7 @@
                     <h1>Statistical Reports</h1>
                 </div>
                 <div class="header-actions-unified">
-                    <select id="yearFilter" class="select-unified" onchange="applyYearFilter()" style="width: auto; padding: 10px 15px;">
-                        <option value="All">All Years</option>
-                    </select>
+
                     <input type="text" class="search-bar-unified" placeholder="Search reports...">
                     <button class="select-unified" onclick="window.print()" style="width: auto; padding: 10px 15px;">
                         <i class="bi bi-printer"></i> Print Report
@@ -122,14 +120,24 @@
                 <!-- Pie + Doughnut: side by side -->
                 <div style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div class="widget-panel" style="margin-bottom: 0;">
-                        <h3>Programme-wise Student Count</h3>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h3 style="margin:0;">Programme-wise Student Count</h3>
+                            <select class="chart-year-filter select-unified" data-chart="studentProgrammeChart" onchange="renderCharts()" style="padding:4px 8px; font-size:11px; width:auto; height:auto;">
+                                <option value="All">All Years</option>
+                            </select>
+                        </div>
                         <div class="chart-container">
                             <canvas id="studentProgrammeChart"></canvas>
                         </div>
                     </div>
 
                     <div class="widget-panel" style="margin-bottom: 0;">
-                        <h3>Programme-wise Internship Count</h3>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h3 style="margin:0;">Programme-wise Internship Count</h3>
+                            <select class="chart-year-filter select-unified" data-chart="internshipProgrammeChart" onchange="renderCharts()" style="padding:4px 8px; font-size:11px; width:auto; height:auto;">
+                                <option value="All">All Years</option>
+                            </select>
+                        </div>
                         <div class="chart-container">
                             <canvas id="internshipProgrammeChart"></canvas>
                         </div>
@@ -138,7 +146,12 @@
 
                 <!-- Government vs Private: full width -->
                 <div class="widget-panel" style="grid-column: span 2;">
-                    <h3>Government vs Private Visits</h3>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h3 style="margin:0;">Government vs Private Visits</h3>
+                        <select class="chart-year-filter select-unified" data-chart="fieldVisitAreaChart" onchange="renderCharts()" style="padding:4px 8px; font-size:11px; width:auto; height:auto;">
+                            <option value="All">All Years</option>
+                        </select>
+                    </div>
                     <div class="chart-container">
                         <canvas id="fieldVisitAreaChart"></canvas>
                     </div>
@@ -146,7 +159,12 @@
 
                 <!-- Placed vs Non-Placed: full width -->
                 <div class="widget-panel" style="grid-column: span 2;">
-                    <h3>Placed vs Non-Placed by Programme</h3>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h3 style="margin:0;">Placed vs Non-Placed by Programme</h3>
+                        <select class="chart-year-filter select-unified" data-chart="placedNonProgrammeChart" onchange="renderCharts()" style="padding:4px 8px; font-size:11px; width:auto; height:auto;">
+                            <option value="All">All Years</option>
+                        </select>
+                    </div>
                     <div class="chart-container">
                         <canvas id="placedNonProgrammeChart"></canvas>
                     </div>
@@ -154,7 +172,12 @@
 
                 <!-- Yearly Activity Trend: full width -->
                 <div class="widget-panel" style="grid-column: span 2;">
-                    <h3>Yearly Activity Count &nbsp;<small style="font-size:11px;color:#555;font-weight:400;">Internships · Field Visits · Industrial Visits</small></h3>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h3 style="margin:0;">Yearly Activity Count &nbsp;<small style="font-size:11px;color:#555;font-weight:400;">Internships · Field Visits · Industrial Visits</small></h3>
+                        <select class="chart-year-filter select-unified" data-chart="yearlyActivityChart" onchange="renderCharts()" style="padding:4px 8px; font-size:11px; width:auto; height:auto;">
+                            <option value="All">All Years</option>
+                        </select>
+                    </div>
                     <div class="chart-container" style="height:280px;">
                         <canvas id="yearlyActivityChart"></canvas>
                     </div>
@@ -162,7 +185,12 @@
 
                 <!-- 3D Org-Type Pie and Legend: Combined into one Card -->
                 <div class="widget-panel" style="grid-column: span 2;">
-                    <h3>Organisation Type Breakdown &nbsp;<small style="font-size:11px;color:#555;font-weight:400;">Internships</small></h3>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h3 style="margin:0;">Organisation Type Breakdown &nbsp;<small style="font-size:11px;color:#555;font-weight:400;">Internships</small></h3>
+                        <select class="chart-year-filter select-unified" data-chart="orgTypePieChart" onchange="renderCharts()" style="padding:4px 8px; font-size:11px; width:auto; height:auto;">
+                            <option value="All">All Years</option>
+                        </select>
+                    </div>
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 10px;">
                         <!-- Top: Chart -->
                         <div class="chart-container" style="width: 100%; height:320px; overflow:visible; display:flex; align-items:center; justify-content:center;">
@@ -251,13 +279,34 @@
                     const b = String(s.batch || '').trim();
                     if (!b) return null;
                     const parts = b.split('-');
-                    if (parts.length === 2 && parts[1].length === 2) {
-                        return 2000 + parseInt(parts[1], 10);
+                    if (parts.length === 2) {
+                        const endStr = parts[1].trim();
+                        if (endStr.length === 2) return 2000 + parseInt(endStr, 10);
+                        if (endStr.length === 4) return parseInt(endStr, 10);
                     }
                     if (b.length === 4 && !isNaN(parseInt(b, 10))) {
                         return parseInt(b, 10);
                     }
                     return null;
+                }
+
+                function isEnrolledInYear(s, year) {
+                    const b = String(s.batch || '').trim();
+                    if (!b) return false;
+                    const parts = b.split('-');
+                    if (parts.length === 2) {
+                        let startYear = parseInt(parts[0].trim(), 10);
+                        if (startYear < 100) startYear += 2000;
+                        
+                        let endYearStr = parts[1].trim();
+                        let endYear = parseInt(endYearStr, 10);
+                        if (endYearStr.length === 2) endYear += 2000;
+                        
+                        return year >= startYear && year <= endYear;
+                    }
+                    const endYear = parseInt(b, 10);
+                    if (!isNaN(endYear)) return year === endYear;
+                    return false;
                 }
 
                 function getEventYear(item) {
@@ -270,39 +319,47 @@
 
                 async function load() {
                     try {
-                        const [stats, studentsRaw, placements, internships, fieldVisits, industrialVisits, acYearRate] = await Promise.all([
+                        const [stats, studentsRaw, placements, internships, fieldVisits, industrialVisits] = await Promise.all([
                             getStats().catch(() => ({ total_students: 0, placed_students: 0, total_companies: 0, total_internships: 0 })),
                             getStudents().catch(() => []),
                             getPlacements().catch(() => []),
                             getInternships().catch(() => []),
                             getFieldVisits().catch(() => []),
-                            getIndustrialVisits().catch(() => []),
-                            getAcademicYearPlacementRate().catch(() => null)
+                            getIndustrialVisits().catch(() => [])
                         ]);
 
-                        window.globalRawData = { stats, studentsRaw, placements, internships, fieldVisits, industrialVisits, acYearRate };
+                        window.globalRawData = { stats, studentsRaw, placements, internships, fieldVisits, industrialVisits };
                         
                         // Populate year dropdown based on available event years + grad years
-                        const yearSelect = document.getElementById('yearFilter');
-                        if (yearSelect.options.length <= 1) {
-                            const years = new Set();
-                            [...placements, ...internships, ...fieldVisits, ...industrialVisits].forEach(x => {
-                                const y = getEventYear(x);
-                                if (y && y >= 2000 && y <= 2100) years.add(y);
-                            });
-                            studentsRaw.forEach(s => {
-                                const gy = getGradYear(s);
-                                if (gy && gy >= 2000 && gy <= 2100) years.add(gy);
-                            });
-                            
-                            const sortedYears = Array.from(years).sort((a,b)=>b-a);
-                            sortedYears.forEach(y => {
-                                const opt = document.createElement('option');
-                                opt.value = y;
-                                opt.textContent = y;
-                                yearSelect.appendChild(opt);
-                            });
+                        const years = new Set();
+                        
+                        // Guarantee 2023 through current year
+                        const currentYear = new Date().getFullYear();
+                        for (let y = 2023; y <= currentYear; y++) {
+                            years.add(y);
                         }
+
+                        [...placements, ...internships, ...fieldVisits, ...industrialVisits].forEach(x => {
+                            const y = getEventYear(x);
+                            if (y && y >= 2000 && y <= 2100) years.add(y);
+                        });
+                        studentsRaw.forEach(s => {
+                            const gy = getGradYear(s);
+                            if (gy && gy >= 2000 && gy <= 2100) years.add(gy);
+                        });
+                        
+                        const sortedYears = Array.from(years).sort((a,b)=>b-a);
+                        const selects = document.querySelectorAll('.chart-year-filter');
+                        selects.forEach(select => {
+                            if (select.options.length <= 1) {
+                                sortedYears.forEach(y => {
+                                    const opt = document.createElement('option');
+                                    opt.value = y;
+                                    opt.textContent = y;
+                                    select.appendChild(opt);
+                                });
+                            }
+                        });
 
                         applyYearFilter();
                     } catch (e) {
@@ -312,62 +369,15 @@
 
                 window.applyYearFilter = async () => {
                     if (!window.globalRawData) return;
-                    const selectedYear = document.getElementById('yearFilter').value;
-                    const isAll = selectedYear === 'All' || !selectedYear;
-                    const yearNum = parseInt(selectedYear, 10);
-
-                    const { stats, studentsRaw, placements, internships, fieldVisits, industrialVisits, acYearRate } = window.globalRawData;
-
-                    if (isAll) {
-                        reportData = { stats, studentsRaw, placements, internships, fieldVisits, industrialVisits };
-                    } else {
-                        reportData = {
-                            stats, // Keep original stats but overwrite specific values if needed or let updateStats compute
-                            studentsRaw: studentsRaw.filter(s => getGradYear(s) === yearNum),
-                            placements: placements.filter(p => getEventYear(p) === yearNum || (studentsRaw.find(s => s.enrollment_number === p.enrollment_number) && getGradYear(studentsRaw.find(s => s.enrollment_number === p.enrollment_number)) === yearNum)),
-                            internships: internships.filter(i => getEventYear(i) === yearNum),
-                            fieldVisits: fieldVisits.filter(f => getEventYear(f) === yearNum),
-                            industrialVisits: industrialVisits.filter(iv => getEventYear(iv) === yearNum)
-                        };
-                    }
-
+                    reportData = window.globalRawData;
                     await updateStats();
                     await renderCharts();
-
-                    // ── Academic-year placement rate card (runs LAST so it is not overwritten) ──
-                    const rateEl   = document.getElementById('rpt-placed-pct-main');
-                    const batchEl  = document.getElementById('rpt-batch-label');
-                    const detailEl = document.getElementById('rpt-placed-count');
-                    
-                    if (isAll) {
-                        if (acYearRate) {
-                            if (rateEl)   rateEl.textContent   = acYearRate.opted > 0 ? `${acYearRate.rate}%` : 'N/A';
-                            if (batchEl)  batchEl.textContent  = `(${acYearRate.batchLabel})`;
-                            if (detailEl) detailEl.textContent = acYearRate.opted > 0
-                                ? `${acYearRate.placed} placed / ${acYearRate.opted} opted`
-                                : `No opted students for ${acYearRate.batchLabel}`;
-                        } else {
-                            if (rateEl)   rateEl.textContent   = 'N/A';
-                            if (detailEl) detailEl.textContent = 'Data unavailable';
-                        }
-                    } else {
-                        if (rateEl)   rateEl.textContent   = 'N/A'; // We can only accurately show stats per academic year, so hide if filtering by a single specific year. Or compute dynamically? Let's just say filtering by year hides this complex metric to avoid confusion.
-                        if (batchEl)  batchEl.textContent  = `(${yearNum})`;
-                        if (detailEl) detailEl.textContent = `Year specific view`;
-                    }
                 };
 
                 async function updateStats() {
                     const { stats, studentsRaw, placements, internships, fieldVisits, industrialVisits } = reportData;
 
-                    let totalStudents = stats.total_students;
-                    if (totalStudents === 0 || isNaN(totalStudents)) {
-                        const uniqueIds = new Set([
-                            ...placements.map(x => x.enrollment_number || x.id),
-                            ...internships.map(x => x.enrollment_number || x.id)
-                        ].filter(Boolean));
-                        totalStudents = uniqueIds.size || studentsRaw.length || 0;
-                    }
+                    let totalStudents = studentsRaw.length;
 
                     // Identify passed-out students (admitted_year < current calendar year)
                     const currentYear = new Date().getFullYear();
@@ -428,14 +438,31 @@
                 }
 
                 async function renderCharts() {
-                    const { placements, internships, fieldVisits, industrialVisits, studentsRaw } = reportData;
+                    const { placements: rPlacements, internships: rInternships, fieldVisits: rFieldVisits, industrialVisits: rIndustrialVisits, studentsRaw: rStudentsRaw } = reportData;
                     try {
                         const destroy = (id) => { if (window[id]) window[id].destroy(); };
-                        const activePlacements = new Set(placements.map(p => String(p.enrollment_number).trim()));
+                        
+                        const getData = (chartId, datasetName) => {
+                            const sel = document.querySelector(`select[data-chart="${chartId}"]`);
+                            const val = sel ? sel.value : 'All';
+                            const { studentsRaw, placements, internships, fieldVisits, industrialVisits } = window.globalRawData;
+                            if (val === 'All') return window.globalRawData[datasetName];
+                            const year = parseInt(val, 10);
+                            switch(datasetName) {
+                                case 'studentsRaw': return studentsRaw.filter(s => getGradYear(s) === year);
+                                case 'placements': return placements.filter(p => getEventYear(p) === year || (studentsRaw.find(s => s.enrollment_number === p.enrollment_number) && getGradYear(studentsRaw.find(s => s.enrollment_number === p.enrollment_number)) === year));
+                                case 'internships': return internships.filter(i => getEventYear(i) === year);
+                                case 'fieldVisits': return fieldVisits.filter(f => getEventYear(f) === year);
+                                case 'industrialVisits': return industrialVisits.filter(iv => getEventYear(iv) === year);
+                            }
+                            return window.globalRawData[datasetName];
+                        };
 
                         // 1. Placement Status
                         const ctx1 = document.getElementById('placementStatusChart');
                         if (ctx1) {
+                            const placements = getData('placementStatusChart', 'placements');
+                            const studentsRaw = getData('placementStatusChart', 'studentsRaw');
                             destroy('_statusChart');
                             window._statusChart = new Chart(ctx1, {
                                 type: 'doughnut',
@@ -453,6 +480,7 @@
                         // 2. Programme-wise Placement
                         const ctx2 = document.getElementById('deptPlacementChart');
                         if (ctx2) {
+                            const placements = getData('deptPlacementChart', 'placements');
                             const map = {};
                             placements.forEach(p => { const d = p.course || p.programme || 'Other'; map[d] = (map[d] || 0) + 1; });
                             destroy('_deptChart');
@@ -469,6 +497,9 @@
                         // 3. Programme-wise Student Count (Pie)
                         const ctx3 = document.getElementById('studentProgrammeChart');
                         if (ctx3) {
+                            const studentsRaw = getData('studentProgrammeChart', 'studentsRaw');
+                            const placements = getData('studentProgrammeChart', 'placements');
+                            const activePlacements = new Set(placements.map(p => String(p.enrollment_number).trim()));
                             const map = {};
                             const deptStats = {};
                             studentsRaw.forEach(s => {
@@ -508,6 +539,7 @@
                         // 4. Programme-wise Internship Count (Doughnut)
                         const ctx4 = document.getElementById('internshipProgrammeChart');
                         if (ctx4) {
+                            const internships = getData('internshipProgrammeChart', 'internships');
                             const map = {};
                             internships.forEach(i => {
                                 const p = i.programme || i.course || i.program_name || 'Other';
@@ -551,6 +583,7 @@
                         // Field Visits by Program
                         const ctxFV = document.getElementById('fieldVisitChart');
                         if (ctxFV) {
+                            const fieldVisits = getData('fieldVisitChart', 'fieldVisits');
                             const mapFV = {};
                             fieldVisits.forEach(v => { const p = v.program_name || v.programme || v.course || 'Other'; mapFV[p] = (mapFV[p] || 0) + 1; });
                             destroy('_fvChart');
@@ -567,6 +600,8 @@
                         // 5. Government vs Private Visits (Area/Line)
                         const ctx5 = document.getElementById('fieldVisitAreaChart');
                         if (ctx5) {
+                            const fieldVisits = getData('fieldVisitAreaChart', 'fieldVisits');
+                            const industrialVisits = getData('fieldVisitAreaChart', 'industrialVisits');
                             const getYear = dateStr => {
                                 if (!dateStr) return 'Unknown';
                                 const parsed = String(dateStr).trim();
@@ -599,21 +634,20 @@
                         // 6. Placed vs Non-Placed (Grouped Bar - Programme)
                         const ctx6 = document.getElementById('placedNonProgrammeChart');
                         if (ctx6) {
-                            const selectedYear = document.getElementById('yearFilter') ? document.getElementById('yearFilter').value : 'All';
-                            const targetYear = (selectedYear === 'All' || !selectedYear) ? new Date().getFullYear() : parseInt(selectedYear, 10);
-                            const targetStudents = studentsRaw.filter(s => getGradYear(s) === targetYear);
-                            
+                            const studentsRaw = getData('placedNonProgrammeChart', 'studentsRaw');
+                            const placements = getData('placedNonProgrammeChart', 'placements');
+                            const activePlacements = new Set(placements.map(p => String(p.enrollment_number).trim()));
                             const getLabel = s => s.programme || 'Other';
-                            const labels = [...new Set(targetStudents.map(s => getLabel(s)))].sort();
+                            const labels = [...new Set(studentsRaw.map(s => getLabel(s)))].sort();
                             
                             destroy('_pnChart');
                             window._pnChart = new Chart(ctx6, {
                                 type: 'bar',
                                 data: {
-                                    labels: labels.length ? labels : ['No data for ' + targetYear],
+                                    labels: labels.length ? labels : ['No data'],
                                     datasets: [
-                                        { label: 'Placed', data: labels.length ? labels.map(l => targetStudents.filter(s => getLabel(s) === l && activePlacements.has(String(s.enrollment_number).trim())).length) : [0], backgroundColor: '#22c55e' },
-                                        { label: 'Unplaced', data: labels.length ? labels.map(l => targetStudents.filter(s => getLabel(s) === l && !activePlacements.has(String(s.enrollment_number).trim())).length) : [0], backgroundColor: '#ef4444' }
+                                        { label: 'Placed', data: labels.length ? labels.map(l => studentsRaw.filter(s => getLabel(s) === l && activePlacements.has(String(s.enrollment_number).trim())).length) : [0], backgroundColor: '#22c55e' },
+                                        { label: 'Unplaced', data: labels.length ? labels.map(l => studentsRaw.filter(s => getLabel(s) === l && !activePlacements.has(String(s.enrollment_number).trim())).length) : [0], backgroundColor: '#ef4444' }
                                     ]
                                 },
                                 options: { responsive: true, maintainAspectRatio: false }
@@ -623,6 +657,9 @@
                         // 7. Yearly Activity Grouped Bar
                         const ctxYA = document.getElementById('yearlyActivityChart');
                         if (ctxYA) {
+                            const internships = getData('yearlyActivityChart', 'internships');
+                            const fieldVisits = getData('yearlyActivityChart', 'fieldVisits');
+                            const industrialVisits = getData('yearlyActivityChart', 'industrialVisits');
                             const getYear = d => {
                                 if (!d) return null;
                                 const s = String(d).trim();
@@ -666,6 +703,7 @@
                         // 8. Org-Type Pie (internships) - Highcharts 3D
                         const ctxOT = document.getElementById('orgTypePieChart');
                         if (ctxOT) {
+                            const internships = getData('orgTypePieChart', 'internships');
                             const map = {};
                             internships.forEach(i => {
                                 const t = (i.type_of_organization || 'Unknown').trim();

@@ -44,10 +44,10 @@
 
         /* Programme Box */
         .prog-section-box {
-            background: rgba(74, 222, 128, 0.04);
-            border: 1px solid rgba(74, 222, 128, 0.15);
-            border-radius: 10px;
-            padding: 16px;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0;
             margin-bottom: 14px;
         }
 
@@ -57,8 +57,8 @@
             gap: 10px;
             align-items: flex-end;
             margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(74, 222, 128, 0.08);
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .prog-row:last-child {
@@ -76,10 +76,10 @@
 
         /* Staff Box */
         .staff-section-box {
-            background: rgba(139, 92, 246, 0.04);
-            border: 1px solid rgba(139, 92, 246, 0.15);
-            border-radius: 10px;
-            padding: 16px;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0;
             margin-bottom: 14px;
         }
 
@@ -394,6 +394,7 @@
                                 <th class="no-wrap">VISIT DATE</th>
                                 <th>STUDENTS</th>
                                 <th>PROGRAMME(S)</th>
+                                <th>BATCH</th>
                                 <th>STAFF COUNT</th>
                                 <th>LEAD STAFF</th>
                                 <th class="no-wrap">TYPE</th>
@@ -403,7 +404,7 @@
                         </thead>
                         <tbody id="tableBody">
                             <tr>
-                                <td colspan="10" style="text-align:center;padding:40px;opacity:0.5;">Loading field
+                                <td colspan="11" style="text-align:center;padding:40px;opacity:0.5;">Loading field
                                     visits...</td>
                             </tr>
                         </tbody>
@@ -477,6 +478,10 @@
                     <div class="form-group">
                         <label class="form-label">Visit Date</label>
                         <input type="text" id="mi-visit_date" class="form-input" placeholder="e.g. 30.10.2023" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Batch</label>
+                        <input type="text" id="mi-batch" class="form-input" placeholder="e.g. 2024-25">
                     </div>
                 </div>
 
@@ -571,6 +576,10 @@
                     <div class="form-group">
                         <label class="form-label">Visit Date</label>
                         <input type="text" id="ei-visit_date" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Batch</label>
+                        <input type="text" id="ei-batch" class="form-input" placeholder="e.g. 2024-25">
                     </div>
                 </div>
 
@@ -815,7 +824,7 @@
                     fieldVisitsData = await getFieldVisits() || [];
                     render(fieldVisitsData);
                 } catch (e) {
-                    if (tbody) tbody.innerHTML = `<tr><td colspan="10" style="padding:24px;text-align:center;color:#f87171">${e.message}</td></tr>`;
+                    if (tbody) tbody.innerHTML = `<tr><td colspan="11" style="padding:24px;text-align:center;color:#f87171">${e.message}</td></tr>`;
                 }
             }
 
@@ -847,6 +856,7 @@
                     <td class="no-wrap">${esc(v.visited_date || '—')}</td>
                     <td style="text-align:center; font-weight:600; color: #4ade80;">${esc(v.no_of_student_visited || '0')}</td>
                     <td style="max-width: 280px;">${formatPrograms(v.program_name)}</td>
+                    <td style="text-align:center; font-weight:600; color: var(--navy-light);">${esc(v.batch || '—')}</td>
                     <td style="text-align:center; font-weight:600;">${esc(v.no_of_staff_visited || '0')}</td>
                     <td style="max-width: 260px;">${formatStaff(v.staff_name)}</td>
                     <td class="no-wrap"><span class="status-pill ${String(v.visit_type || '').toLowerCase() === 'private' ? 'not-placed' : 'placed'}" style="font-size:10px; padding: 2px 8px;">${esc(v.visit_type || 'Government')}</span></td>
@@ -870,6 +880,7 @@
                 render(fieldVisitsData.filter(v =>
                     (v.field_visited || '').toLowerCase().includes(q) ||
                     (v.program_name || '').toLowerCase().includes(q) ||
+                    (v.batch || '').toLowerCase().includes(q) ||
                     (v.staff_name || '').toLowerCase().includes(q) ||
                     (v.city || '').toLowerCase().includes(q)
                 ));
@@ -903,6 +914,7 @@
                 document.getElementById('ei-visit_date').value = v.visited_date || '';
                 document.getElementById('ei-no_of_staff').value = v.no_of_staff_visited || 0;
                 document.getElementById('ei-visit_type').value = v.visit_type || 'Government';
+                document.getElementById('ei-batch').value = v.batch || '';
                 document.getElementById('ei-city').value = v.city || '';
 
                 // Populate programmes
@@ -997,6 +1009,7 @@
                         program_name: JSON.stringify(programs),
                         no_of_staff_visited: parseInt(document.getElementById('mi-no_of_staff').value) || 0,
                         staff_name: JSON.stringify(staff),
+                        batch: document.getElementById('mi-batch').value,
                         city: document.getElementById('mi-city').value
                     });
                     closeModal(document.getElementById('studentModal'));
@@ -1033,6 +1046,7 @@
                         program_name: JSON.stringify(programs),
                         no_of_staff_visited: parseInt(document.getElementById('ei-no_of_staff').value) || 0,
                         staff_name: JSON.stringify(staff),
+                        batch: document.getElementById('ei-batch').value,
                         city: document.getElementById('ei-city').value
                     });
                     closeModal(document.getElementById('editFieldVisitModal'));
