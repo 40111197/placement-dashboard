@@ -367,13 +367,21 @@ async function getInternships(prog = '') {
 }
 
 async function createInternship(payload) {
+    // The internships table id is NOT auto-increment, so we must generate the next id manually.
+    const { data: maxData } = await _sb.from('internships').select('id').order('id', { ascending: false }).limit(1);
+    let nextId = (maxData && maxData.length > 0) ? maxData[0].id + 1 : 1;
+
     const isArray = Array.isArray(payload);
-    let query = _sb.from('internships').insert(payload).select();
-    if (!isArray) query = query.single();
-    
-    const { data, error } = await query;
+    let payloadWithId;
+    if (isArray) {
+        payloadWithId = payload.map((p, i) => ({ ...p, id: nextId + i }));
+    } else {
+        payloadWithId = { ...payload, id: nextId };
+    }
+
+    const { data, error } = await _sb.from('internships').insert(payloadWithId).select();
     sbCheck(error, 'createInternship');
-    return data;
+    return isArray ? data : (data && data[0]);
 }
 
 async function updateInternship(id, payload) {
