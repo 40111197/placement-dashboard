@@ -176,12 +176,7 @@
                             required>
                     </div>
                 </div>
-                <div class="form-group-row">
-                    <div class="form-group">
-                        <label class="form-label label-blue">Role</label>
-                        <input type="text" id="mi-role" class="form-input input-blue" placeholder="e.g. SDE Intern">
-                    </div>
-                </div>
+                
                 <div class="form-group-row">
                     <div class="form-group">
                         <label class="form-label label-blue">Internship Place</label>
@@ -272,16 +267,7 @@
                         <input type="text" id="ei-batch" class="form-input input-blue" required>
                     </div>
                 </div>
-                <div class="form-group-row">
-                    <div class="form-group">
-                        <label class="form-label label-blue">Role</label>
-                        <input type="text" id="ei-role" class="form-input input-blue">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label label-blue">Salary / Stipend</label>
-                        <input type="text" id="ei-salary" class="form-input input-blue">
-                    </div>
-                </div>
+                
                 <div class="form-group-row">
                     <div class="form-group">
                         <label class="form-label label-blue">Internship Place</label>
@@ -468,9 +454,6 @@
                         document.getElementById('ei-city').value = item.city_of_intership || item.city_of_intership_01 || '';
                         document.getElementById('ei-org-type').value = item.type_of_organization || 'Govt.';
 
-                        document.getElementById('ei-role').value = item.role || '';
-                        document.getElementById('ei-salary').value = item.salary || item.stipend || '';
-
                         const container = document.getElementById('ei-student-container');
                         container.innerHTML = '';
                         addInternStudentRow('ei');
@@ -587,9 +570,7 @@
                     const basePayload = {
                         year: document.getElementById('mi-year').value,
                         batch: document.getElementById('mi-batch').value,
-                        role: document.getElementById('mi-role').value || '',
-                        salary: document.getElementById('mi-salary').value || '',
-                        internship_place: document.getElementById('mi-place').value,
+                                                                        internship_place: document.getElementById('mi-place').value,
                         duration_of_intership: document.getElementById('mi-duration').value || '',
                         city_of_intership: document.getElementById('mi-city').value || '',
                         type_of_organization: document.getElementById('mi-org-type').value || ''
@@ -634,9 +615,7 @@
                     const basePayload = {
                         year: document.getElementById('ei-year').value,
                         batch: document.getElementById('ei-batch').value,
-                        role: document.getElementById('ei-role').value || '',
-                        salary: document.getElementById('ei-salary').value || '',
-                        internship_place: document.getElementById('ei-place').value,
+                                                                        internship_place: document.getElementById('ei-place').value,
                         duration_of_intership: document.getElementById('ei-duration').value || '',
                         city_of_intership: document.getElementById('ei-city').value || '',
                         type_of_organization: document.getElementById('ei-org-type').value || ''
