@@ -540,9 +540,9 @@
                 const rows = container.querySelectorAll('.prog-row');
                 const students = [];
                 rows.forEach(row => {
-                    const enrolment = row.querySelector('.intern-enrolment').value.trim();
-                    const name = row.querySelector('.intern-name').value.trim();
-                    const prog = row.querySelector('.intern-prog').value.trim();
+                    const enrolment = row.querySelector('.intern-enrolment').value;
+                    const name = row.querySelector('.intern-name').value;
+                    const prog = row.querySelector('.intern-prog').value;
                     const gender = row.querySelector('.intern-gender').value;
                     if (enrolment && name && prog) {
                         students.push({ enrollment_number: enrolment, student_name: name, programme: prog, gender });
@@ -589,7 +589,14 @@
                     document.getElementById('mi-student-container').innerHTML = ''; // Clear rows
                     load();
                 } catch (err) {
-                    if (errEl) { errEl.textContent = err.message; errEl.style.display = 'block'; }
+                    if (errEl) { 
+                        let msg = err.message;
+                        if (msg.includes('foreign key constraint')) {
+                            msg = 'Error: The Student Enrollment Number you entered does not exist. Please register the student in the "Students" page first.';
+                        }
+                        errEl.textContent = msg; 
+                        errEl.style.display = 'block'; 
+                    }
                 } finally {
                     btn.disabled = false; btn.textContent = 'Save Internship';
                 }
@@ -634,7 +641,14 @@
                     document.getElementById('editInternshipModal').style.display = 'none';
                     load();
                 } catch (err) {
-                    if (errEl) { errEl.textContent = err.message; errEl.style.display = 'block'; }
+                    if (errEl) { 
+                        let msg = err.message;
+                        if (msg.includes('foreign key constraint')) {
+                            msg = 'Error: The Student Enrollment Number you entered does not exist. Please register the student in the "Students" page first.';
+                        }
+                        errEl.textContent = msg; 
+                        errEl.style.display = 'block'; 
+                    }
                 } finally {
                     btn.disabled = false; btn.textContent = 'Save Changes';
                 }
