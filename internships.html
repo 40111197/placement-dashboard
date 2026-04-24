@@ -521,7 +521,7 @@
                 });
             });
 
-            function addInternStudentRow(prefix = 'mi') {
+            window.addInternStudentRow = function(prefix = 'mi') {
                 const container = document.getElementById(prefix + '-student-container');
                 if (!container) return;
                 const row = document.createElement('div');
@@ -549,7 +549,7 @@
                     </button>
                 `;
                 container.appendChild(row);
-            }
+            };
 
             function collectInternStudentRows(prefix = 'mi') {
                 const container = document.getElementById(prefix + '-student-container');
