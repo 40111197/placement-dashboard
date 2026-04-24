@@ -77,13 +77,12 @@
                     <thead>
                         <tr>
                             <th>SR.</th>
-                            <th class="no-wrap">Enrolment</th>
                             <th>Year</th>
                             <th>Batch</th>
-                            <th>Prog.</th>
-                            <th>Student Name</th>
-                            <th>Gender</th>
-                            <th>Place</th>
+                            <th class="no-wrap">Enrolment No(s)</th>
+                            <th>Student Name(s)</th>
+                            <th>Programme(s)</th>
+                            <th>Internship Place</th>
                             <th>Duration</th>
                             <th>City</th>
                             <th>Org Type</th>
@@ -389,16 +388,51 @@
 
             function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
+            // Group internship records by internship_place+year+batch+duration+city+org
+            function groupInternships(list) {
+                const groups = [];
+                const map = new Map();
+                list.forEach(item => {
+                    const key = [
+                        (item.internship_place || '').trim(),
+                        (item.year || '').trim(),
+                        (item.batch || '').trim(),
+                        (item.duration_of_intership || '').trim(),
+                        (item.city_of_intership || '').trim(),
+                        (item.type_of_organization || '').trim()
+                    ].join('||');
+                    if (!map.has(key)) {
+                        map.set(key, { ...item, _students: [], _ids: [] });
+                        groups.push(map.get(key));
+                    }
+                    const g = map.get(key);
+                    g._ids.push(item.id);
+                    g._students.push({
+                        id: item.id,
+                        enrollment_number: item.enrollment_number || '',
+                        student_name: item.student_name || item.name_of_student || '',
+                        programme: item.programme || '',
+                        gender: item.gender || ''
+                    });
+                });
+                return groups;
+            }
+
+            function formatStudentCell(students, field, separator = ', ') {
+                return esc(students.map(s => (s[field] || '').trim()).filter(Boolean).join(separator));
+            }
+
             function render(list) {
                 if (!tbody) return;
 
-                const totalItems = list.length;
+                const groups = groupInternships(list);
+                const totalItems = groups.length;
                 const totalPages = Math.ceil(totalItems / pageSize);
                 if (currentPage > totalPages) currentPage = totalPages || 1;
 
                 const start = (currentPage - 1) * pageSize;
                 const end = start + pageSize;
-                const paginatedItems = list.slice(start, end);
+                const paginatedGroups = groups.slice(start, end);
 
                 // Update pagination info
                 document.getElementById('totalItems').textContent = totalItems;
@@ -410,27 +444,26 @@
                 document.getElementById('nextPage').disabled = (currentPage === totalPages || totalPages === 0);
 
                 if (!totalItems) {
-                    tbody.innerHTML = '<tr><td colspan="15" style="padding:40px;text-align:center;opacity:0.5;">No internships found.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="9" style="padding:40px;text-align:center;opacity:0.5;">No internships found.</td></tr>';
                     return;
                 }
 
-                tbody.innerHTML = paginatedItems.map((item, i) => `
-                    <tr data-id="${item.id}">
+                tbody.innerHTML = paginatedGroups.map((grp, i) => `
+                    <tr data-ids="${grp._ids.join(',')}"> 
                         <td style="text-align:center;">${start + i + 1}</td>
-                        <td class="no-wrap" style="font-family:monospace; color:var(--text-white); white-space:nowrap;">${esc(item.enrollment_number || '-')}</td>
-                        <td>${esc(item.year)}</td>
-                        <td>${esc(item.batch || '-')}</td>
-                        <td>${esc(item.programme)}</td>
-                        <td style="font-weight:600;">${esc(item.student_name || item.name_of_student)}</td>
-                        <td>${esc(item.gender)}</td>
-                        <td>${esc(item.internship_place || item.internship_place_01)}</td>
-                        <td>${esc(item.duration_of_intership || item.duration_of_intership_01)}</td>
-                        <td>${esc(item.city_of_intership || item.city_of_intership_01)}</td>
-                        <td>${esc(item.type_of_organization)}</td>
+                        <td>${esc(grp.year)}</td>
+                        <td>${esc(grp.batch || '-')}</td>
+                        <td style="font-family:monospace;font-size:12px;color:var(--text-white);">${formatStudentCell(grp._students, 'enrollment_number', '<br>')}</td>
+                        <td style="font-weight:600;">${formatStudentCell(grp._students, 'student_name', '<br>')}</td>
+                        <td>${formatStudentCell(grp._students, 'programme', '<br>')}</td>
+                        <td>${esc(grp.internship_place || grp.internship_place_01)}</td>
+                        <td>${esc(grp.duration_of_intership || grp.duration_of_intership_01)}</td>
+                        <td>${esc(grp.city_of_intership || grp.city_of_intership_01)}</td>
+                        <td>${esc(grp.type_of_organization)}</td>
                         <td>
                             <div style="display:flex;gap:8px;justify-content:center;">
-                                <button class="action-icon btn-edit-intern" data-id="${item.id}" title="Edit"><i class="bi bi-pencil-square"></i></button>
-                                <button class="action-icon btn-del-intern" data-id="${item.id}" title="Delete"><i class="bi bi-trash"></i></button>
+                                <button class="action-icon btn-edit-intern" data-ids="${grp._ids.join(',')}" title="Edit"><i class="bi bi-pencil-square"></i></button>
+                                <button class="action-icon btn-del-intern" data-ids="${grp._ids.join(',')}" title="Delete"><i class="bi bi-trash"></i></button>
                             </div>
                         </td>
                     </tr>`
@@ -443,25 +476,33 @@
                 tbody.querySelectorAll('.btn-edit-intern').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const targetBtn = e.target.closest('.btn-edit-intern');
-                        const id = targetBtn.dataset.id;
-                        const item = data.find(x => x.id == id);
-                        if (!item) return;
-                        document.getElementById('ei-id').value = item.id;
-                        document.getElementById('ei-year').value = item.year || '';
-                        document.getElementById('ei-batch').value = item.batch || '';
-                        document.getElementById('ei-place').value = item.internship_place || item.internship_place_01 || '';
-                        document.getElementById('ei-duration').value = item.duration_of_intership || item.duration_of_intership_01 || '';
-                        document.getElementById('ei-city').value = item.city_of_intership || item.city_of_intership_01 || '';
-                        document.getElementById('ei-org-type').value = item.type_of_organization || 'Govt.';
+                        const ids = targetBtn.dataset.ids.split(',').map(Number);
+                        const items = data.filter(x => ids.includes(x.id));
+                        if (!items.length) return;
+                        const primary = items[0];
 
+                        // Store all IDs for the group on the hidden field (comma-separated)
+                        document.getElementById('ei-id').value = ids.join(',');
+                        document.getElementById('ei-year').value = primary.year || '';
+                        document.getElementById('ei-batch').value = primary.batch || '';
+                        document.getElementById('ei-place').value = primary.internship_place || primary.internship_place_01 || '';
+                        document.getElementById('ei-duration').value = primary.duration_of_intership || primary.duration_of_intership_01 || '';
+                        document.getElementById('ei-city').value = primary.city_of_intership || primary.city_of_intership_01 || '';
+                        document.getElementById('ei-org-type').value = primary.type_of_organization || 'Govt.';
+
+                        // Populate all students in the group
                         const container = document.getElementById('ei-student-container');
                         container.innerHTML = '';
-                        addInternStudentRow('ei');
-                        const row = container.querySelector('.prog-row');
-                        row.querySelector('.intern-enrolment').value = item.enrollment_number || '';
-                        row.querySelector('.intern-name').value = item.student_name || item.name_of_student || '';
-                        row.querySelector('.intern-prog').value = item.programme || '';
-                        row.querySelector('.intern-gender').value = item.gender || 'Male';
+                        items.forEach(item => {
+                            addInternStudentRow('ei');
+                            const rows = container.querySelectorAll('.prog-row');
+                            const row = rows[rows.length - 1];
+                            row.dataset.existingId = item.id;
+                            row.querySelector('.intern-enrolment').value = item.enrollment_number || '';
+                            row.querySelector('.intern-name').value = item.student_name || item.name_of_student || '';
+                            row.querySelector('.intern-prog').value = item.programme || '';
+                            row.querySelector('.intern-gender').value = item.gender || 'Male';
+                        });
 
                         document.getElementById('editInternshipModal').style.display = 'flex';
                     });
@@ -470,9 +511,13 @@
                 tbody.querySelectorAll('.btn-del-intern').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         const targetBtn = e.target.closest('.btn-del-intern');
-                        if (!confirm('Delete this internship?')) return;
-                        try { await deleteInternship(targetBtn.dataset.id); load(); }
-                        catch (err) { alert('Delete failed: ' + err.message); }
+                        const ids = targetBtn.dataset.ids.split(',');
+                        const count = ids.length;
+                        if (!confirm(`Delete this internship group (${count} student record${count > 1 ? 's' : ''})?`)) return;
+                        try {
+                            await Promise.all(ids.map(id => deleteInternship(id)));
+                            load();
+                        } catch (err) { alert('Delete failed: ' + err.message); }
                     });
                 });
             }
@@ -482,7 +527,7 @@
                 render(data.filter(i =>
                     (i.student_name || i.name_of_student || '').toLowerCase().includes(q) ||
                     (i.enrollment_number || '').toLowerCase().includes(q) ||
-                    (i.internship_place_01 || '').toLowerCase().includes(q)
+                    (i.internship_place || '').toLowerCase().includes(q)
                 ));
             });
 
@@ -545,7 +590,13 @@
                     const prog = row.querySelector('.intern-prog').value;
                     const gender = row.querySelector('.intern-gender').value;
                     if (enrolment && name && prog) {
-                        students.push({ enrollment_number: enrolment, student_name: name, programme: prog, gender });
+                        students.push({
+                            existingId: row.dataset.existingId || null,
+                            enrollment_number: enrolment,
+                            student_name: name,
+                            programme: prog,
+                            gender
+                        });
                     }
                 });
                 return students;
@@ -605,7 +656,8 @@
             // Edit submit
             document.getElementById('editInternshipForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const id = document.getElementById('ei-id').value;
+                const idsRaw = document.getElementById('ei-id').value;
+                const originalIds = idsRaw.split(',').map(Number).filter(Boolean);
                 const errEl = document.getElementById('editInternModalError');
                 const btn = document.getElementById('editInternshipSubmitBtn');
                 if (errEl) errEl.style.display = 'none';
@@ -622,32 +674,43 @@
                     const basePayload = {
                         year: document.getElementById('ei-year').value,
                         batch: document.getElementById('ei-batch').value,
-                                                                        internship_place: document.getElementById('ei-place').value,
+                        internship_place: document.getElementById('ei-place').value,
                         duration_of_intership: document.getElementById('ei-duration').value || '',
                         city_of_intership: document.getElementById('ei-city').value || '',
                         type_of_organization: document.getElementById('ei-org-type').value || ''
                     };
 
-                    // Update the primary student (the one we clicked edit on)
-                    const primaryStudentPayload = { ...basePayload, ...students[0] };
-                    await updateInternship(id, primaryStudentPayload);
+                    const updatedIds = [];
 
-                    // If more students were added dynamically in the Edit modal, bulk insert them
-                    if (students.length > 1) {
-                        const newStudents = students.slice(1).map(st => ({ ...basePayload, ...st }));
-                        await createInternship(newStudents);
+                    for (const student of students) {
+                        const { existingId, ...studentData } = student;
+                        const payload = { ...basePayload, ...studentData };
+                        if (existingId) {
+                            // Update existing record
+                            await updateInternship(existingId, payload);
+                            updatedIds.push(Number(existingId));
+                        } else {
+                            // Create new record for a newly added student
+                            await createInternship(payload);
+                        }
+                    }
+
+                    // Delete any original records that were removed from the form
+                    const removedIds = originalIds.filter(id => !updatedIds.includes(id));
+                    if (removedIds.length > 0) {
+                        await Promise.all(removedIds.map(id => deleteInternship(id)));
                     }
 
                     document.getElementById('editInternshipModal').style.display = 'none';
                     load();
                 } catch (err) {
-                    if (errEl) { 
+                    if (errEl) {
                         let msg = err.message;
                         if (msg.includes('foreign key constraint')) {
-                            msg = 'Error: The Student Enrollment Number you entered does not exist. Please register the student in the "Students" page first.';
+                            msg = 'Error: Enrollment Number does not exist in the Students table. Please add the student first.';
                         }
-                        errEl.textContent = msg; 
-                        errEl.style.display = 'block'; 
+                        errEl.textContent = msg;
+                        errEl.style.display = 'block';
                     }
                 } finally {
                     btn.disabled = false; btn.textContent = 'Save Changes';
