@@ -2365,3 +2365,41 @@ tbody tr:hover {
     to { transform: rotate(360deg); }
 }
 
+
+/* ── COLORED INPUT STYLES FOR SECTIONS ── */
+.input-purple {
+    background: #0d0f1e !important;
+    border: 1px solid rgba(139, 92, 246, 0.25) !important;
+    color: var(--text-primary) !important;
+}
+.input-purple:focus {
+    border-color: #8b5cf6 !important;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12) !important;
+}
+.input-purple::placeholder { color: rgba(139, 92, 246, 0.4) !important; }
+
+.input-blue {
+    background: #0d0f1e !important;
+    border: 1px solid rgba(17, 161, 213, 0.25) !important;
+    color: var(--text-primary) !important;
+}
+.input-blue:focus {
+    border-color: #11a1d5 !important;
+    box-shadow: 0 0 0 3px rgba(17, 161, 213, 0.12) !important;
+}
+.input-blue::placeholder { color: rgba(17, 161, 213, 0.4) !important; }
+
+.input-green {
+    background: #0d0f1e !important;
+    border: 1px solid rgba(74, 222, 128, 0.25) !important;
+    color: var(--text-primary) !important;
+}
+.input-green:focus {
+    border-color: #4ade80 !important;
+    box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.12) !important;
+}
+.input-green::placeholder { color: rgba(74, 222, 128, 0.4) !important; }
+
+.label-purple { color: rgba(139, 92, 246, 0.7) !important; font-size: 10.5px !important; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+.label-blue { color: rgba(17, 161, 213, 0.7) !important; font-size: 10.5px !important; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+.label-green { color: rgba(74, 222, 128, 0.7) !important; font-size: 10.5px !important; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
