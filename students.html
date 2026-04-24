@@ -21,7 +21,8 @@
         </div>
         <nav class="sidebar-nav">
             <a href="dashboard.html" class="sidebar-link"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a>
-            <a href="students.html" class="sidebar-link"><i class="bi bi-people-fill"></i> <span>Students</span></a>
+            <a href="students.html" class="sidebar-link active"><i class="bi bi-people-fill"></i>
+                <span>Students</span></a>
             <a href="internships.html" class="sidebar-link"><i class="bi bi-person-workspace"></i>
                 <span>Internships</span></a>
             <a href="field-visits.html" class="sidebar-link"><i class="bi bi-pin-map-fill"></i> <span>Field
@@ -32,7 +33,7 @@
                 <span>Placements</span></a>
             <a href="external-jobs.html" class="sidebar-link"><i class="bi bi-globe"></i> <span>Job Offers</span></a>
             <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-fill"></i> <span>Reports</span></a>
-            <a href="settings.html" class="sidebar-link active"><i class="bi bi-gear-fill"></i>
+            <a href="settings.html" class="sidebar-link"><i class="bi bi-gear-fill"></i>
                 <span>Settings</span></a>
         </nav>
         <div class="sidebar-footer">
@@ -148,66 +149,131 @@
 
     <!-- ADD STUDENT MODAL -->
     <div id="addStudentModal" class="modal-overlay">
-        <div class="modal-content large">
+        <div class="modal-content" style="max-width: 860px;">
             <div class="modal-header">
                 <h2>Add New Student</h2>
                 <button class="close-modal" id="closeAddModal">&times;</button>
             </div>
-            <form class="modal-form three-col" id="addStudentForm" enctype="multipart/form-data">
+            <form id="addStudentForm" enctype="multipart/form-data">
                 <div id="modalError" style="color:#f87171;font-size:13px;margin-bottom:8px;display:none;"></div>
-                <div class="form-group">
-                    <input type="text" id="ms-name" required placeholder=" ">
-                    <label>Student Name</label>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="ms-enrollment" required placeholder=" ">
-                    <label>Enrollment Number</label>
-                </div>
-                <div class="form-group">
-                    <input type="email" id="ms-student-email" required placeholder=" ">
-                    <label>Student Email ID</label>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="ms-phone" placeholder=" ">
-                    <label>Mobile Number</label>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="ms-programme" placeholder=" ">
-                    <label>Programme</label>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="ms-batch" placeholder=" ">
-                    <label>Batch</label>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="ms-year" placeholder=" ">
-                    <label>Admitted Year</label>
-                </div>
-                <div class="form-group">
-                    <input type="email" id="ms-personal-email" placeholder=" ">
-                    <label>Personal Email ID</label>
-                </div>
-                <div class="form-group">
-                    <select id="ms-opted">
-                        <option value="No">No</option>
-                        <option value="Yes">Yes</option>
-                    </select>
-                    <label>Opted for Placement?</label>
-                </div>
-                <div class="form-group">
-                    <select id="ms-higher-ed">
-                        <option value="No">No</option>
-                        <option value="Yes">Yes</option>
-                    </select>
-                    <label>Higher Education?</label>
+
+                <div style="margin-bottom: 18px;">
+                    <div class="dynamic-section-header">
+                        <div class="section-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
+                            <i class="bi bi-person-lines-fill"></i>
+                        </div>
+                        <div>
+                            <span class="section-title" style="color: #8b5cf6;">Personal Info</span>
+                            <span class="section-subtitle">— basic student details</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-group" style="grid-column: span 3;">
-                    <textarea id="ms-remark" placeholder="Remark..."
-                        style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 6px; padding: 10px;"></textarea>
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label class="form-label">Student Name</label>
+                        <input type="text" id="ms-name" class="form-input" placeholder="e.g. Arun Kumar" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Enrollment Number</label>
+                        <input type="text" id="ms-enrollment" class="form-input" placeholder="e.g. 240051101841001"
+                            required>
+                    </div>
                 </div>
-                <div class="modal-buttons">
-                    <button type="submit" class="add-btn" id="addStudentSubmitBtn">Add Student</button>
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label class="form-label">Student Email ID</label>
+                        <input type="email" id="ms-student-email" class="form-input" placeholder="student@rru.ac.in"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mobile Number</label>
+                        <input type="text" id="ms-phone" class="form-input" placeholder="e.g. 9876543210">
+                    </div>
+                </div>
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label class="form-label">Personal Email ID</label>
+                        <input type="email" id="ms-personal-email" class="form-input" placeholder="personal@gmail.com">
+                    </div>
+                </div>
+
+                <div class="section-divider"></div>
+
+                <div style="margin-bottom: 18px;">
+                    <div class="dynamic-section-header">
+                        <div class="section-icon" style="background: rgba(17,161,213,0.12); color: var(--navy-light);">
+                            <i class="bi bi-mortarboard-fill"></i>
+                        </div>
+                        <div>
+                            <span class="section-title" style="color: var(--navy-light);">Academic Info</span>
+                            <span class="section-subtitle">— programme and batch</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label class="form-label">Programme</label>
+                        <select id="ms-programme" class="form-select">
+                            <option value="">— Select Programme —</option>
+                            <option value="BCPS">BCPS</option>
+                            <option value="BHMCT">BHMCT</option>
+                            <option value="MCRM">MCRM</option>
+                            <option value="BCCS">BCCS</option>
+                            <option value="BBA">BBA</option>
+                            <option value="MBA">MBA</option>
+                            <option value="MHM">MHM</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Batch</label>
+                        <input type="text" id="ms-batch" class="form-input" placeholder="e.g. 2024-25">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Admitted Year</label>
+                        <input type="text" id="ms-year" class="form-input" placeholder="e.g. 2024">
+                    </div>
+                </div>
+
+                <div class="section-divider"></div>
+
+                <div style="margin-bottom: 18px;">
+                    <div class="dynamic-section-header">
+                        <div class="section-icon" style="background: rgba(74,222,128,0.12); color: #4ade80;">
+                            <i class="bi bi-briefcase-fill"></i>
+                        </div>
+                        <div>
+                            <span class="section-title" style="color: #4ade80;">Placement & Remarks</span>
+                            <span class="section-subtitle">— placement choices and notes</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label class="form-label">Opted for Placement?</label>
+                        <select id="ms-opted" class="form-select">
+                            <option value="No">No</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Higher Education?</label>
+                        <select id="ms-higher-ed" class="form-select">
+                            <option value="No">No</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Remark</label>
+                    <textarea id="ms-remark" class="form-input" placeholder="Any remarks..." rows="2"
+                        style="resize: vertical; min-height: 60px;"></textarea>
+                </div>
+                <div class="button-group" style="margin-top: 24px;">
+                    <button type="submit" class="btn btn-primary" id="addStudentSubmitBtn">Add Student</button>
+                    <button type="button" class="btn btn-secondary" id="cancelAddStudentBtn">Cancel</button>
                 </div>
             </form>
         </div>
@@ -215,71 +281,136 @@
 
     <!-- EDIT STUDENT MODAL -->
     <div id="editStudentModal" class="modal-overlay" style="display:none;">
-        <div class="modal-content large">
+        <div class="modal-content" style="max-width: 860px;">
             <div class="modal-header">
                 <h2>Edit Student</h2>
                 <button class="close-modal" id="closeEditModal">&times;</button>
             </div>
-            <form class="modal-form three-col" id="editStudentForm" enctype="multipart/form-data">
+            <form id="editStudentForm" enctype="multipart/form-data">
                 <input type="hidden" id="es-original-enrollment">
                 <div id="editModalError" style="color:#f87171;font-size:13px;margin-bottom:8px;display:none;"></div>
-                <div class="form-group">
-                    <input type="text" id="es-name" required placeholder=" ">
-                    <label>Student Name</label>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="es-enrollment" required placeholder=" ">
-                    <label>Enrollment Number</label>
-                </div>
-                <div class="form-group">
-                    <input type="email" id="es-student-email" required placeholder=" ">
-                    <label>Student Email ID</label>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="es-phone" placeholder=" ">
-                    <label>Mobile Number</label>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="es-programme" placeholder=" ">
-                    <label>Programme</label>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="es-batch" placeholder=" ">
-                    <label>Batch</label>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="es-year" placeholder=" ">
-                    <label>Admitted Year</label>
-                </div>
-                <div class="form-group">
-                    <input type="email" id="es-personal-email" placeholder=" ">
-                    <label>Personal Email ID</label>
-                </div>
-                <div class="form-group">
-                    <select id="es-opted">
-                        <option value="No">No</option>
-                        <option value="Yes">Yes</option>
-                    </select>
-                    <label>Opted for Placement?</label>
-                </div>
-                <div class="form-group">
-                    <select id="es-higher-ed">
-                        <option value="No">No</option>
-                        <option value="Yes">Yes</option>
-                    </select>
-                    <label>Higher Education?</label>
+
+                <div style="margin-bottom: 18px;">
+                    <div class="dynamic-section-header">
+                        <div class="section-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
+                            <i class="bi bi-person-lines-fill"></i>
+                        </div>
+                        <div>
+                            <span class="section-title" style="color: #8b5cf6;">Personal Info</span>
+                            <span class="section-subtitle">— basic student details</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-group" style="grid-column: span 3;">
-                    <textarea id="es-remark" placeholder="Remark..."
-                        style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 6px; padding: 10px;"></textarea>
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label class="form-label">Student Name</label>
+                        <input type="text" id="es-name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Enrollment Number</label>
+                        <input type="text" id="es-enrollment" class="form-input" required>
+                    </div>
                 </div>
-                <div class="modal-buttons">
-                    <button type="submit" class="add-btn" id="editStudentSubmitBtn">Save Changes</button>
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label class="form-label">Student Email ID</label>
+                        <input type="email" id="es-student-email" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mobile Number</label>
+                        <input type="text" id="es-phone" class="form-input">
+                    </div>
+                </div>
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label class="form-label">Personal Email ID</label>
+                        <input type="email" id="es-personal-email" class="form-input">
+                    </div>
+                </div>
+
+                <div class="section-divider"></div>
+
+                <div style="margin-bottom: 18px;">
+                    <div class="dynamic-section-header">
+                        <div class="section-icon" style="background: rgba(17,161,213,0.12); color: var(--navy-light);">
+                            <i class="bi bi-mortarboard-fill"></i>
+                        </div>
+                        <div>
+                            <span class="section-title" style="color: var(--navy-light);">Academic Info</span>
+                            <span class="section-subtitle">— programme and batch</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label class="form-label">Programme</label>
+                        <select id="es-programme" class="form-select">
+                            <option value="">— Select Programme —</option>
+                            <option value="BCPS">BCPS</option>
+                            <option value="BHMCT">BHMCT</option>
+                            <option value="MCRM">MCRM</option>
+                            <option value="BCCS">BCCS</option>
+                            <option value="BBA">BBA</option>
+                            <option value="MBA">MBA</option>
+                            <option value="MHM">MHM</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Batch</label>
+                        <input type="text" id="es-batch" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Admitted Year</label>
+                        <input type="text" id="es-year" class="form-input">
+                    </div>
+                </div>
+
+                <div class="section-divider"></div>
+
+                <div style="margin-bottom: 18px;">
+                    <div class="dynamic-section-header">
+                        <div class="section-icon" style="background: rgba(74,222,128,0.12); color: #4ade80;">
+                            <i class="bi bi-briefcase-fill"></i>
+                        </div>
+                        <div>
+                            <span class="section-title" style="color: #4ade80;">Placement & Remarks</span>
+                            <span class="section-subtitle">— placement choices and notes</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label class="form-label">Opted for Placement?</label>
+                        <select id="es-opted" class="form-select">
+                            <option value="No">No</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Higher Education?</label>
+                        <select id="es-higher-ed" class="form-select">
+                            <option value="No">No</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Remark</label>
+                    <textarea id="es-remark" class="form-input" rows="2"
+                        style="resize: vertical; min-height: 60px;"></textarea>
+                </div>
+                <div class="button-group" style="margin-top: 24px;">
+                    <button type="submit" class="btn btn-primary" id="editStudentSubmitBtn">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" id="cancelEditStudentBtn">Cancel</button>
                 </div>
             </form>
         </div>
     </div>
+
+
 
     <!-- PLACEMENT FLOW MODAL -->
     <div id="placementFlowModal" class="modal-overlay" style="display:none;">
@@ -591,6 +722,9 @@
         document.getElementById('closeAddModal').addEventListener('click', () => {
             document.getElementById('addStudentModal').style.display = 'none';
         });
+        document.getElementById('cancelAddStudentBtn').addEventListener('click', () => {
+            document.getElementById('addStudentModal').style.display = 'none';
+        });
 
         // Add student form
         document.getElementById('addStudentForm').addEventListener('submit', async (e) => {
@@ -671,6 +805,10 @@
         document.getElementById('closeEditModal').addEventListener('click', () => {
             document.getElementById('editStudentModal').style.display = 'none';
         });
+        document.getElementById('cancelEditStudentBtn').addEventListener('click', () => {
+            document.getElementById('editStudentModal').style.display = 'none';
+        });
+
 
         // Import modal
         document.getElementById('openImportModal').addEventListener('click', () => {

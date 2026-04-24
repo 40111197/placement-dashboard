@@ -1,5 +1,5 @@
 /* =========================================================
-   PULSE-R PLACEMENT MONITOR — DARK THEME
+   PLACEMENT MONITOR — DARK THEME
    Inspired by Rashtriya Raksha University (rru.ac.in)
    ========================================================= */
 
@@ -2068,3 +2068,300 @@ tbody tr:hover {
         display: none;
     }
 }
+/* ── DYNAMIC FORM STYLING ── */
+.dynamic-section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.section-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.section-subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-left: 6px;
+}
+
+.section-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+/* Programme Box */
+.prog-section-box {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin-bottom: 14px;
+}
+
+.prog-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 10px;
+    align-items: flex-end;
+    margin-bottom: 10px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.prog-row:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.prog-row-inner {
+    display: grid;
+    grid-template-columns: 1fr 120px;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+/* Staff Box */
+.staff-section-box {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin-bottom: 14px;
+}
+
+.staff-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.staff-row:last-child {
+    margin-bottom: 0;
+}
+
+/* Custom Select styling */
+.form-select-prog {
+    background: #0d0f1e;
+    border: 1px solid rgba(74, 222, 128, 0.25);
+    border-radius: 8px;
+    color: var(--text-primary);
+    padding: 10px 12px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    width: 100%;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234ade80' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+}
+
+.form-select-prog:focus {
+    outline: none;
+    border-color: #4ade80;
+    box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.12);
+}
+
+.form-select-prog option {
+    background: #11142b;
+    color: var(--text-primary);
+}
+
+.form-input-count, .form-input-staff {
+    background: #0d0f1e;
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    border-radius: 8px;
+    color: var(--text-primary);
+    padding: 10px 12px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    width: 100%;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input-count {
+    border-color: rgba(74, 222, 128, 0.25);
+}
+
+.form-input-count:focus {
+    outline: none;
+    border-color: #4ade80;
+    box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.12);
+}
+
+.form-input-staff:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+}
+
+.form-input-staff::placeholder {
+    color: rgba(139, 92, 246, 0.4);
+}
+
+/* Add row buttons */
+.btn-add-row-prog, .btn-add-row-staff {
+    background: transparent;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+}
+
+.btn-add-row-prog {
+    border: 1px dashed rgba(74, 222, 128, 0.4);
+    color: #4ade80;
+}
+.btn-add-row-prog:hover {
+    background: rgba(74, 222, 128, 0.08);
+    border-color: #4ade80;
+}
+
+.btn-add-row-staff {
+    border: 1px dashed rgba(139, 92, 246, 0.4);
+    color: #8b5cf6;
+}
+.btn-add-row-staff:hover {
+    background: rgba(139, 92, 246, 0.08);
+    border-color: #8b5cf6;
+}
+
+/* Remove row button */
+.btn-remove-row {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 16px;
+}
+.btn-remove-row:hover {
+    background: rgba(239, 68, 68, 0.18);
+    border-color: #ef4444;
+}
+
+/* Form label overrides within dynamic sections */
+.prog-section-box .form-label,
+.staff-section-box .form-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.prog-section-box .form-label {
+    color: rgba(74, 222, 128, 0.7);
+}
+
+.staff-section-box .form-label {
+    color: rgba(139, 92, 246, 0.7);
+}
+
+.section-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 20px 0;
+    opacity: 0.6;
+}
+
+
+/* ── PROGRAMME & STAFF TABLE TAGS ── */
+.prog-tag {
+    background: rgba(74, 222, 128, 0.10);
+    color: #4ade80;
+    border: 1px solid rgba(74, 222, 128, 0.2);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin: 2px 2px 2px 0;
+}
+
+.prog-tag .prog-count {
+    background: rgba(74, 222, 128, 0.2);
+    border-radius: 8px;
+    padding: 0 5px;
+    font-size: 10px;
+}
+
+.staff-tag {
+    background: rgba(139, 92, 246, 0.10);
+    color: #c4b5fd;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin: 2px 2px 2px 0;
+}
+
+.empty-row-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 4px 0;
+}
+
+/* Loading state for programme dropdowns */
+.prog-loading {
+    color: var(--text-muted);
+    font-size: 12px;
+    padding: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.spin-sm {
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(74, 222, 128, 0.3);
+    border-top-color: #4ade80;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+

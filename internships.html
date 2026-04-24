@@ -21,7 +21,7 @@
         <nav class="sidebar-nav">
             <a href="dashboard.html" class="sidebar-link"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a>
             <a href="students.html" class="sidebar-link"><i class="bi bi-people-fill"></i> <span>Students</span></a>
-            <a href="internships.html" class="sidebar-link"><i class="bi bi-person-workspace"></i>
+            <a href="internships.html" class="sidebar-link active"><i class="bi bi-person-workspace"></i>
                 <span>Internships</span></a>
             <a href="field-visits.html" class="sidebar-link"><i class="bi bi-pin-map-fill"></i> <span>Field
                     Visits</span></a>
@@ -31,7 +31,7 @@
                 <span>Placements</span></a>
             <a href="external-jobs.html" class="sidebar-link"><i class="bi bi-globe"></i> <span>Job Offers</span></a>
             <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-fill"></i> <span>Reports</span></a>
-            <a href="settings.html" class="sidebar-link active"><i class="bi bi-gear-fill"></i>
+            <a href="settings.html" class="sidebar-link"><i class="bi bi-gear-fill"></i>
                 <span>Settings</span></a>
         </nav>
         <div class="sidebar-footer">
@@ -151,38 +151,28 @@
             </div>
             <form id="studentForm">
                 <div id="internModalError" class="alert alert-error"></div>
+
+                <!-- ── INTERNSHIP DETAILS ── -->
+                <div style="margin-bottom: 18px;">
+                    <div class="dynamic-section-header">
+                        <div class="section-icon" style="background: rgba(17,161,213,0.12); color: var(--navy-light);">
+                            <i class="bi bi-briefcase-fill"></i>
+                        </div>
+                        <div>
+                            <span class="section-title" style="color: var(--navy-light);">Internship Details</span>
+                            <span class="section-subtitle">— company, role, duration</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group-row">
                     <div class="form-group">
                         <label class="form-label">Year</label>
                         <input type="text" id="mi-year" class="form-input" placeholder="e.g. 2024" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Enrolment No.</label>
-                        <input type="text" id="mi-enrolment" class="form-input" placeholder="e.g. 2.30171E+14" required>
-                    </div>
-                </div>
-                <div class="form-group-row">
-                    <div class="form-group">
-                        <label class="form-label">Programme</label>
-                        <input type="text" id="mi-programme" class="form-input" placeholder="e.g. PGDSDF" required>
-                    </div>
-                    <div class="form-group">
                         <label class="form-label">Batch</label>
-                        <input type="text" id="mi-batch" class="form-input" placeholder="e.g. Batch-1" required>
-                    </div>
-                </div>
-                <div class="form-group-row">
-                    <div class="form-group">
-                        <label class="form-label">Name of Student</label>
-                        <input type="text" id="mi-name" class="form-input" placeholder="Enter student name" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Gender</label>
-                        <select id="mi-gender" class="form-select" required>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                        </select>
+                        <input type="text" id="mi-batch" class="form-input" placeholder="e.g. 2024-25" required>
                     </div>
                 </div>
                 <div class="form-group-row">
@@ -236,7 +226,29 @@
                     </div>
                 </div>
 
-                <div class="button-group">
+                <div class="section-divider"></div>
+
+                <!-- ── STUDENT ENTRIES ── -->
+                <div style="margin-bottom: 18px;">
+                    <div class="dynamic-section-header">
+                        <div class="section-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <div>
+                            <span class="section-title" style="color: #8b5cf6;">Student Entries</span>
+                            <span class="section-subtitle">— add multiple students for this internship</span>
+                        </div>
+                    </div>
+
+                    <div class="staff-section-box" id="mi-student-container">
+                        <!-- Student rows injected by JS -->
+                    </div>
+                    <button type="button" class="btn-add-row-staff" onclick="addInternStudentRow()">
+                        <i class="bi bi-plus-circle-fill"></i> Add Student
+                    </button>
+                </div>
+
+                <div class="button-group" style="margin-top: 24px;">
                     <button type="submit" id="saveStudentBtn" class="btn btn-primary">Save Internship</button>
                     <button type="button" class="btn btn-secondary close-modal">Cancel</button>
                 </div>
@@ -255,14 +267,27 @@
             <form id="editInternshipForm">
                 <input type="hidden" id="ei-id">
                 <div id="editInternModalError" class="alert alert-error"></div>
-                <div class="form-group-row">
-                    <div class="form-group">
-                        <label class="form-label">Year</label>
-                        <input type="text" id="ei-year" class="form-input" required>
+
+                <div style="margin-bottom: 18px;">
+                    <div class="dynamic-section-header">
+                        <div class="section-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <div>
+                            <span class="section-title" style="color: #8b5cf6;">Student Info</span>
+                            <span class="section-subtitle">— edit student record</span>
+                        </div>
                     </div>
+                </div>
+
+                <div class="form-group-row">
                     <div class="form-group">
                         <label class="form-label">Enrolment No.</label>
                         <input type="text" id="ei-enrolment" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Name of Student</label>
+                        <input type="text" id="ei-name" class="form-input" required>
                     </div>
                 </div>
                 <div class="form-group-row">
@@ -271,22 +296,37 @@
                         <input type="text" id="ei-programme" class="form-input" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Batch</label>
-                        <input type="text" id="ei-batch" class="form-input" required>
-                    </div>
-                </div>
-                <div class="form-group-row">
-                    <div class="form-group">
-                        <label class="form-label">Name of Student</label>
-                        <input type="text" id="ei-name" class="form-input" required>
-                    </div>
-                    <div class="form-group">
                         <label class="form-label">Gender</label>
                         <select id="ei-gender" class="form-select" required>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                             <option value="Other">Other</option>
                         </select>
+                    </div>
+                </div>
+
+                <div class="section-divider"></div>
+
+                <div style="margin-bottom: 18px;">
+                    <div class="dynamic-section-header">
+                        <div class="section-icon" style="background: rgba(17,161,213,0.12); color: var(--navy-light);">
+                            <i class="bi bi-briefcase-fill"></i>
+                        </div>
+                        <div>
+                            <span class="section-title" style="color: var(--navy-light);">Internship Details</span>
+                            <span class="section-subtitle">— company, role, duration</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label class="form-label">Year</label>
+                        <input type="text" id="ei-year" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Batch</label>
+                        <input type="text" id="ei-batch" class="form-input" required>
                     </div>
                 </div>
                 <div class="form-group-row">
@@ -340,9 +380,9 @@
                     </div>
                 </div>
 
-                <div class="button-group">
+                <div class="button-group" style="margin-top: 24px;">
                     <button type="submit" id="editInternshipSubmitBtn" class="btn btn-primary">Save Changes</button>
-                    <button type="button" class="btn btn-secondary"
+                    <button type="button" class="btn btn-secondary close-modal"
                         onclick="document.getElementById('editInternshipModal').style.display='none'">Cancel</button>
                 </div>
             </form>
@@ -511,6 +551,9 @@
             document.getElementById('addStudentBtn').addEventListener('click', () => {
                 const modal = document.getElementById('studentModal');
                 if (modal) modal.style.display = 'flex';
+                document.getElementById('internModalError').style.display = 'none';
+                document.getElementById('mi-student-container').innerHTML = '';
+                addInternStudentRow();
             });
 
             document.querySelectorAll('.close-modal').forEach(btn => {
@@ -520,21 +563,72 @@
                 });
             });
 
+            function addInternStudentRow() {
+                const container = document.getElementById('mi-student-container');
+                if (!container) return;
+                const row = document.createElement('div');
+                row.className = 'prog-row';
+                row.style.gridTemplateColumns = '1.2fr 1.5fr 1fr 100px auto';
+                row.innerHTML = `
+                    <div class="form-group" style="margin-bottom:0;">
+                        <input type="text" class="form-input-count intern-enrolment" placeholder="Enrolment No." required>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <input type="text" class="form-input-count intern-name" placeholder="Student Name" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <input type="text" class="form-input-count intern-prog" placeholder="Programme" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <select class="form-select-prog intern-gender" required>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn-remove-row" style="margin-bottom: 2px;" onclick="this.closest('.prog-row').remove()">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                `;
+                container.appendChild(row);
+            }
+
+            function collectInternStudentRows() {
+                const container = document.getElementById('mi-student-container');
+                if (!container) return [];
+                const rows = container.querySelectorAll('.prog-row');
+                const students = [];
+                rows.forEach(row => {
+                    const enrolment = row.querySelector('.intern-enrolment').value.trim();
+                    const name = row.querySelector('.intern-name').value.trim();
+                    const prog = row.querySelector('.intern-prog').value.trim();
+                    const gender = row.querySelector('.intern-gender').value;
+                    if (enrolment && name && prog) {
+                        students.push({ enrollment_number: enrolment, student_name: name, programme: prog, gender });
+                    }
+                });
+                return students;
+            }
+
             // Save btn
             document.getElementById('studentForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const errEl = document.getElementById('internModalError');
                 const btn = document.getElementById('saveStudentBtn');
                 if (errEl) errEl.style.display = 'none';
+
+                const students = collectInternStudentRows();
+                if (students.length === 0) {
+                    if (errEl) { errEl.textContent = 'Please add at least one student entry.'; errEl.style.display = 'block'; }
+                    return;
+                }
+
                 btn.disabled = true; btn.textContent = 'Saving…';
 
                 try {
-                    await createInternship({
+                    const basePayload = {
                         year: document.getElementById('mi-year').value,
-                        enrollment_number: document.getElementById('mi-enrolment').value,
-                        programme: document.getElementById('mi-programme').value,
-                        student_name: document.getElementById('mi-name').value,
-                        gender: document.getElementById('mi-gender').value,
+                        batch: document.getElementById('mi-batch').value,
                         role: document.getElementById('mi-role').value || '',
                         salary: document.getElementById('mi-salary').value || '',
                         internship_place_01: document.getElementById('mi-place').value,
@@ -544,10 +638,19 @@
                         duration_of_intership_02: document.getElementById('mi-duration-02').value || '',
                         city_of_intership_02: document.getElementById('mi-city-02').value || '',
                         type_of_organization: document.getElementById('mi-org-type').value || ''
-                    });
+                    };
+
+                    const payloads = students.map(st => ({
+                        ...basePayload,
+                        ...st
+                    }));
+
+                    await createInternship(payloads);
+
                     const modal = document.getElementById('studentModal');
                     if (modal) modal.style.display = 'none';
                     document.getElementById('studentForm').reset();
+                    document.getElementById('mi-student-container').innerHTML = ''; // Clear rows
                     load();
                 } catch (err) {
                     if (errEl) { errEl.textContent = err.message; errEl.style.display = 'block'; }

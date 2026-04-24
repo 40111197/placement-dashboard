@@ -276,15 +276,18 @@ async function getAcademicYearPlacementRate() {
             const b = String(s.batch || s.admitted_year || '').trim();
             if (!b) return false;
             const bLow = b.toLowerCase();
-            // Exact label match ("2024-25" / "24-25")
+            // Robust matching:
+            // 1. Exact match with label (e.g. "2024-25")
             if (bLow === batchLabel.toLowerCase()) return true;
+            // 2. Exact match with short label (e.g. "24-25")
             if (bLow === `${String(startYear).slice(-2)}-${shortEnd}`) return true;
-            // Single-year graduation year match ("2025")
-            if (b === String(endYear)) return true;
-            // Single-year start year match ("2024")
-            if (b === String(startYear)) return true;
-            // Hyphenated match that contains the start year ("2024-...")
-            if (b.startsWith(String(startYear) + '-')) return true;
+            // 3. Match with full graduation year (e.g. "2025")
+            if (bLow.includes(String(endYear))) return true;
+            // 4. Match with full start year followed by hyphen (e.g. "2024-")
+            if (bLow.startsWith(String(startYear) + '-')) return true;
+            // 5. Match with short start year followed by hyphen (e.g. "24-")
+            if (bLow.startsWith(String(startYear).slice(-2) + '-')) return true;
+            
             return false;
         });
 
@@ -298,12 +301,17 @@ async function getAcademicYearPlacementRate() {
             return { rate: 0, placed: 0, opted: 0, batchLabel };
         }
 
-        // ── Fetch all placements (enrollment numbers only) ─────────────────
-        const { data: placements, error: pErr } = await _sb
+        // ── Fetch all placements ─────────────────
+        const { data: placementsRaw, error: pErr } = await _sb
             .from('placements')
-            .select('enrollment_number')
-            .neq('status', 'Awaiting for offer letter');
+            .select('enrollment_number, role, remarks');
         if (pErr) { console.warn('[api] getAcademicYearPlacementRate - placements fetch:', pErr); return null; }
+
+        const placements = (placementsRaw || []).filter(p => {
+            const role = String(p.role || '').toLowerCase().trim();
+            const remarks = String(p.remarks || '').toLowerCase().trim();
+            return role !== 'awaiting for offer letter' && remarks !== 'awaiting for offer letter';
+        });
 
         const placedSet = new Set(
             (placements || []).map(p => String(p.enrollment_number).trim())
@@ -359,7 +367,11 @@ async function getInternships(prog = '') {
 }
 
 async function createInternship(payload) {
-    const { data, error } = await _sb.from('internships').insert(payload).select().single();
+    const isArray = Array.isArray(payload);
+    let query = _sb.from('internships').insert(payload).select();
+    if (!isArray) query = query.single();
+    
+    const { data, error } = await query;
     sbCheck(error, 'createInternship');
     return data;
 }
@@ -480,12 +492,9 @@ async function importIndustrialVisits(fileOrFormData) {
 async function getStats(programme = '') {
     const buildCount = (table, colHint = 'programme') => {
         let q = _sb.from(table).select('*', { count: 'exact', head: true });
-        if (table === 'placements') {
-            q = q.neq('status', 'Awaiting for offer letter');
-        }
         if (programme) {
             // Filter by the correct column name per table
-            if (table === 'placements') q = q.ilike('course', `%${programme.trim()}%`);
+            if (table === 'placements') q = q.ilike('programme', `%${programme.trim()}%`);
             else if (table === 'internships') q = q.ilike('programme', `%${programme.trim()}%`);
             else if (table === 'field_visits' || table === 'industrial_visits') q = q.ilike('program_name', `%${programme.trim()}%`);
             else q = q.ilike(colHint, `%${programme.trim()}%`);
@@ -542,7 +551,11 @@ async function getDeptStats(programme = '') {
             getPlacements().catch(() => [])
         ]);
 
-        const placements = placementsAll.filter(p => p.status !== 'Awaiting for offer letter');
+        const placements = placementsAll.filter(p => {
+            const role = String(p.role || '').toLowerCase().trim();
+            const remarks = String(p.remarks || '').toLowerCase().trim();
+            return role !== 'awaiting for offer letter' && remarks !== 'awaiting for offer letter';
+        });
         const deptMap = {};
         const activePlacements = new Set(placements.map(p => String(p.enrollment_number).trim()));
 
@@ -584,7 +597,11 @@ async function getDeptStats(programme = '') {
 
 async function getYearlyTrend(prog = '') {
     const allPlacements = await getPlacements(prog);
-    const placements = allPlacements.filter(p => p.status !== 'Awaiting for offer letter');
+    const placements = allPlacements.filter(p => {
+        const role = String(p.role || '').toLowerCase().trim();
+        const remarks = String(p.remarks || '').toLowerCase().trim();
+        return role !== 'awaiting for offer letter' && remarks !== 'awaiting for offer letter';
+    });
     const yearMap = {};
     placements.forEach(p => {
         // Attempt to extract year from various date fields

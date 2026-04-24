@@ -44,8 +44,9 @@
             <a href="placements.html" class="sidebar-link"><i class="bi bi-briefcase-fill"></i>
                 <span>Placements</span></a>
             <a href="external-jobs.html" class="sidebar-link"><i class="bi bi-globe"></i> <span>Job Offers</span></a>
-            <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-fill"></i> <span>Reports</span></a>
-            <a href="settings.html" class="sidebar-link active"><i class="bi bi-gear-fill"></i>
+            <a href="reports.html" class="sidebar-link active"><i class="bi bi-bar-chart-fill"></i>
+                <span>Reports</span></a>
+            <a href="settings.html" class="sidebar-link"><i class="bi bi-gear-fill"></i>
                 <span>Settings</span></a>
         </nav>
         <div class="sidebar-footer">
@@ -427,8 +428,21 @@
                 const maxYear = admittedYears.length ? Math.max(...admittedYears) : new Date().getFullYear();
 
                 set('rpt-total', totalStudents);
-                // NOTE: rpt-placed-pct-main and rpt-placed-count are owned by
-                // getAcademicYearPlacementRate() — do NOT set them here.
+
+                // Fetch and update the specialized placement rate for the current academic year
+                getAcademicYearPlacementRate().then(acRate => {
+                    if (acRate) {
+                        set('rpt-placed-pct-main', acRate.rate + '%');
+                        set('rpt-placed-count', `${acRate.placed} placed / ${acRate.opted} opted`);
+                        const batchLabelEl = document.getElementById('rpt-batch-label');
+                        if (batchLabelEl) batchLabelEl.textContent = `(${acRate.batchLabel})`;
+
+                        // Update the small % label in the total students card
+                        const pctSmall = document.getElementById('rpt-placed-pct');
+                        if (pctSmall) pctSmall.textContent = `${acRate.rate}% Placed`;
+                    }
+                }).catch(err => console.warn('[reports] Academic year rate failed:', err));
+
                 set('rpt-companies', stats.total_companies || new Set(placements.map(p => p.company)).size);
                 set('rpt-field-visits', fieldVisits.length);
                 set('rpt-industrial-visits', (industrialVisits || []).length);
