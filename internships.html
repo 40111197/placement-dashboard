@@ -418,8 +418,13 @@
                 return groups;
             }
 
-            function formatStudentCell(students, field, separator = ', ') {
-                return esc(students.map(s => (s[field] || '').trim()).filter(Boolean).join(separator));
+            // Escape each item individually, then join with a real HTML <br> or badge
+            function formatStudentCell(students, field, style = '') {
+                return students
+                    .map(s => (s[field] || '').trim())
+                    .filter(Boolean)
+                    .map(v => `<span style="display:block;${style}">${esc(v)}</span>`)
+                    .join('');
             }
 
             function render(list) {
@@ -453,9 +458,9 @@
                         <td style="text-align:center;">${start + i + 1}</td>
                         <td>${esc(grp.year)}</td>
                         <td>${esc(grp.batch || '-')}</td>
-                        <td style="font-family:monospace;font-size:12px;color:var(--text-white);">${formatStudentCell(grp._students, 'enrollment_number', '<br>')}</td>
-                        <td style="font-weight:600;">${formatStudentCell(grp._students, 'student_name', '<br>')}</td>
-                        <td>${formatStudentCell(grp._students, 'programme', '<br>')}</td>
+                        <td style="font-family:monospace;font-size:12px;color:var(--text-white);">${formatStudentCell(grp._students, 'enrollment_number', 'white-space:nowrap;margin-bottom:2px;')}</td>
+                        <td style="font-weight:600;">${formatStudentCell(grp._students, 'student_name', 'margin-bottom:2px;')}</td>
+                        <td>${formatStudentCell(grp._students, 'programme', 'display:inline-block;background:rgba(99,179,237,0.15);color:#63b3ed;border-radius:4px;padding:1px 6px;margin:1px 0;font-size:11px;')}</td>
                         <td>${esc(grp.internship_place || grp.internship_place_01)}</td>
                         <td>${esc(grp.duration_of_intership || grp.duration_of_intership_01)}</td>
                         <td>${esc(grp.city_of_intership || grp.city_of_intership_01)}</td>
