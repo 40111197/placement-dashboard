@@ -434,8 +434,16 @@
                         attributionControl: false,
                         maxBounds: indiaBounds,
                         maxBoundsViscosity: 1.0,
-                        minZoom: 4
-                    }).setView([22.5, 80], 4.5);
+                        minZoom: 3.5,
+                        zoomSnap: 0.1,
+                        zoomDelta: 0.5
+                    });
+                    
+                    // Allow container to finalize layout, then fit bounds exactly
+                    setTimeout(() => {
+                        _map.invalidateSize();
+                        _map.fitBounds(indiaBounds, { padding: [10, 10] });
+                    }, 100);
 
                     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png').addTo(_map);
                     _markers.addTo(_map);
@@ -523,7 +531,13 @@
                                 allPoints.push([lat, lng, 0.4]);
 
                                 // Resilient name lookup
-                                const label = item.student_name || item.name || item.name_of_student || item.field_visited || item.organization_name || item.company || 'Record';
+                                let label = item.student_name || item.name || item.name_of_student || item.field_visited || item.organization_name || item.company || 'Record';
+                                let labelTitle = 'Name';
+
+                                if (type === 'Internship') {
+                                    label = item.internship_place_01 || item.internship_place || item.company || 'Record';
+                                    labelTitle = 'Company';
+                                }
 
                                 L.circleMarker([lat, lng], {
                                     radius: 5,
@@ -534,7 +548,7 @@
                                 }).bindPopup(`
                                     <div style="font-family: 'Inter', sans-serif;">
                                         <b style="color:${color}">${type}</b><br>
-                                        <b>Name:</b> ${esc(label)}<br>
+                                        <b>${labelTitle}:</b> ${esc(label)}<br>
                                         <b>City:</b> ${esc(rawCity)}
                                     </div>
                                 `).addTo(_markers);

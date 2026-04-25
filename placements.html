@@ -74,19 +74,19 @@
 
         <div class="widget-panel">
             <div class="table-container data-table-container">
-                <table class="premium-table">
+                <table class="premium-table" style="min-width: 1200px;">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>NAME</th>
-                            <th class="no-wrap">ENROLLMENT NUMBER</th>
-                            <th>PROGRAMME</th>
-                            <th>BATCH</th>
-                            <th>ROLE</th>
-                            <th>COMPANY</th>
-                            <th>CITY</th>
-                            <th>SALARY</th>
-                            <th>ACTIONS</th>
+                            <th style="width: 5%;">ID</th>
+                            <th style="width: 15%;">NAME</th>
+                            <th style="width: 16%;" class="no-wrap">ENROLLMENT NUMBER</th>
+                            <th style="width: 12%;">PROGRAMME</th>
+                            <th style="width: 8%;">BATCH</th>
+                            <th style="width: 12%;">ROLE</th>
+                            <th style="width: 12%;">COMPANY</th>
+                            <th style="width: 10%;">CITY</th>
+                            <th style="width: 10%;">SALARY</th>
+                            <th style="width: 8%;">ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody id="placementsTableBody">
@@ -421,7 +421,7 @@
 
             tbody.innerHTML = paginatedItems.map((p, i) => {
                 return `
-                    <tr data-id="${p.enrollment_number || p.id}">
+                    <tr data-id="${p.id}">
                         <td style="text-align:center;">${escHtml(p.id || start + i + 1)}</td>
                         <td style="font-weight:600;">${escHtml(p.name || p.student_name || '—')}</td>
                         <td class="no-wrap" style="font-family:monospace; white-space:nowrap;">${escHtml(p.enrollment_number || '—')}</td>
@@ -433,8 +433,8 @@
                         <td style="color:#22c55e;">${escHtml(p.salary || p.ctc || p.package || '—')}</td>
                         <td>
                             <div style="display:flex;gap:8px;justify-content:center;">
-                                <button class="action-icon btn-edit-placement" data-id="${p.enrollment_number || p.id}" title="Edit"><i class="bi bi-pencil-square"></i></button>
-                                <button class="action-icon btn-del-placement" data-id="${p.enrollment_number || p.id}" title="Delete"><i class="bi bi-trash"></i></button>
+                                <button class="action-icon btn-edit-placement" data-id="${p.id}" title="Edit"><i class="bi bi-pencil-square"></i></button>
+                                <button class="action-icon btn-del-placement" data-id="${p.id}" title="Delete"><i class="bi bi-trash"></i></button>
                             </div>
                         </td>
                     </tr>`;
