@@ -159,10 +159,6 @@
             <div class="widget-panel" style="grid-column: span 2;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                     <h3 style="margin:0;">Government vs Private Visits</h3>
-                    <select class="chart-year-filter select-unified" data-chart="fieldVisitAreaChart"
-                        onchange="renderCharts()" style="padding:4px 8px; font-size:11px; width:auto; height:auto;">
-                        <option value="All">All Years</option>
-                    </select>
                 </div>
                 <div class="chart-container">
                     <canvas id="fieldVisitAreaChart"></canvas>
@@ -186,13 +182,9 @@
             <!-- Yearly Activity Trend: full width -->
             <div class="widget-panel" style="grid-column: span 2;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h3 style="margin:0;">Yearly Activity Count &nbsp;<small
+                    <h3 style="margin:0;">Programme Activity Count &nbsp;<small
                             style="font-size:11px;color:#555;font-weight:400;">Internships · Field Visits · Industrial
                             Visits</small></h3>
-                    <select class="chart-year-filter select-unified" data-chart="yearlyActivityChart"
-                        onchange="renderCharts()" style="padding:4px 8px; font-size:11px; width:auto; height:auto;">
-                        <option value="All">All Years</option>
-                    </select>
                 </div>
                 <div class="chart-container" style="height:280px;">
                     <canvas id="yearlyActivityChart"></canvas>
@@ -330,6 +322,11 @@
             }
 
             function getEventYear(item) {
+                // Check if 'year' property exists (common for internships)
+                if (item.year) {
+                    const yr = parseInt(String(item.year).trim());
+                    if (!isNaN(yr) && yr > 2000 && yr < 2100) return yr;
+                }
                 const dateStr = item.created_at || item.placement_date || item.visit_date || item.visited_date || '';
                 if (!dateStr) return null;
                 const m = dateStr.match(/\b(20\d{2})\b/);
@@ -361,11 +358,11 @@
 
                     [...placements, ...internships, ...fieldVisits, ...industrialVisits].forEach(x => {
                         const y = getEventYear(x);
-                        if (y && y >= 2000 && y <= 2100) years.add(y);
+                        if (y && y >= 2000 && y <= currentYear) years.add(y);
                     });
                     studentsRaw.forEach(s => {
                         const gy = getGradYear(s);
-                        if (gy && gy >= 2000 && gy <= 2100) years.add(gy);
+                        if (gy && gy >= 2000 && gy <= currentYear) years.add(gy);
                     });
 
                     const sortedYears = Array.from(years).sort((a, b) => b - a);
@@ -391,6 +388,11 @@
                 if (!window.globalRawData) return;
                 reportData = window.globalRawData;
                 await updateStats();
+                await renderCharts();
+            };
+
+            // Ensure renderCharts is globally accessible for onchange events
+            window.renderCharts = async () => {
                 await renderCharts();
             };
 
@@ -482,8 +484,8 @@
                         if (val === 'All') return window.globalRawData[datasetName];
                         const year = parseInt(val, 10);
                         switch (datasetName) {
-                            case 'studentsRaw': return studentsRaw.filter(s => getGradYear(s) === year);
-                            case 'placements': return placements.filter(p => getEventYear(p) === year || (studentsRaw.find(s => s.enrollment_number === p.enrollment_number) && getGradYear(studentsRaw.find(s => s.enrollment_number === p.enrollment_number)) === year));
+                            case 'studentsRaw': return studentsRaw.filter(s => isEnrolledInYear(s, year));
+                            case 'placements': return placements.filter(p => getEventYear(p) === year || (studentsRaw.find(s => s.enrollment_number === p.enrollment_number) && isEnrolledInYear(studentsRaw.find(s => s.enrollment_number === p.enrollment_number), year)));
                             case 'internships': return internships.filter(i => getEventYear(i) === year);
                             case 'fieldVisits': return fieldVisits.filter(f => getEventYear(f) === year);
                             case 'industrialVisits': return industrialVisits.filter(iv => getEventYear(iv) === year);
@@ -569,7 +571,7 @@
                         });
                     }
 
-                    // 4. Programme-wise Internship Count (Doughnut)
+                    // 4. Programme-wise Internship Count (Pie)
                     const ctx4 = document.getElementById('internshipProgrammeChart');
                     if (ctx4) {
                         const internships = getData('internshipProgrammeChart', 'internships');
@@ -598,15 +600,14 @@
                             if (old) old.remove();
                             destroy('_ipChart');
                             window._ipChart = new Chart(ctx4, {
-                                type: 'doughnut',
+                                type: 'pie',
                                 data: {
                                     labels,
-                                    datasets: [{ data: values, backgroundColor: ['#ec4899', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'] }]
+                                    datasets: [{ data: values, backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'] }]
                                 },
                                 options: {
                                     responsive: true,
                                     maintainAspectRatio: false,
-                                    cutout: '60%',
                                     plugins: { legend: { position: 'bottom', labels: { color: '#8b949e', padding: 12, font: { size: 11 } } } }
                                 }
                             });
@@ -633,35 +634,86 @@
                     // 5. Government vs Private Visits (Area/Line)
                     const ctx5 = document.getElementById('fieldVisitAreaChart');
                     if (ctx5) {
+                        // Without the select element, getData automatically returns all unfiltered records
                         const fieldVisits = getData('fieldVisitAreaChart', 'fieldVisits');
                         const industrialVisits = getData('fieldVisitAreaChart', 'industrialVisits');
-                        const getYear = dateStr => {
+                        
+                        const getTimePeriod = dateStr => {
                             if (!dateStr) return 'Unknown';
                             const parsed = String(dateStr).trim();
                             const parts = parsed.split(/[-\/\.]/);
-                            if (!parts || parts.length === 0) return 'Unknown';
-                            if (parts[0].length === 4) return parts[0];
-                            if (parts.length >= 3 && parts[2].length === 4) return parts[2];
-                            return 'Unknown';
+                            if (!parts || parts.length < 3) return 'Unknown';
+                            
+                            let y, m;
+                            if (parts[0].length === 4) { y = parts[0]; m = parts[1]; }
+                            else if (parts[2].length === 4) { y = parts[2]; m = parts[1]; }
+                            else return 'Unknown';
+
+                            // Return YYYY-MM for proper chronological sorting
+                            return `${y}-${m.padStart(2, '0')}`;
                         };
 
-                        const govVisits = fieldVisits.map(v => ({ ...v, parsedYear: getYear(v.visited_date || v.visit_date) }));
-                        const privVisits = industrialVisits.map(v => ({ ...v, parsedYear: getYear(v.visited_date || v.visit_date) }));
+                        const formatPeriod = yyyymm => {
+                            if (yyyymm === 'Unknown') return yyyymm;
+                            const [y, m] = yyyymm.split('-');
+                            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                            const mIdx = parseInt(m, 10) - 1;
+                            const mName = (mIdx >= 0 && mIdx < 12) ? monthNames[mIdx] : m;
+                            return `${mName} ${y}`;
+                        };
 
-                        const years = [...new Set([...govVisits, ...privVisits].map(v => v.parsedYear).filter(y => y !== 'Unknown'))].sort();
+                        const allVisits = [...fieldVisits, ...industrialVisits].map(v => ({
+                            ...v,
+                            timePeriod: getTimePeriod(v.visited_date || v.visit_date),
+                            isGov: String(v.visit_type || 'Government').toLowerCase() === 'government'
+                        })).filter(v => v.timePeriod !== 'Unknown');
 
-                        destroy('_areaChart');
-                        window._areaChart = new Chart(ctx5, {
-                            type: 'line',
-                            data: {
-                                labels: years,
-                                datasets: [
-                                    { label: 'Government', data: years.map(y => govVisits.filter(v => v.parsedYear === y).length), borderColor: '#3b82f6', fill: true, backgroundColor: 'rgba(59, 130, 246, 0.1)', tension: 0.4 },
-                                    { label: 'Private', data: years.map(y => privVisits.filter(v => v.parsedYear === y).length), borderColor: '#f59e0b', fill: true, backgroundColor: 'rgba(245, 158, 11, 0.1)', tension: 0.4 }
-                                ]
-                            },
-                            options: { responsive: true, maintainAspectRatio: false }
-                        });
+                        // Sort the YYYY-MM strings chronologically
+                        const timePeriods = [...new Set(allVisits.map(v => v.timePeriod))].sort();
+                        const labels = timePeriods.map(formatPeriod);
+
+                        if (allVisits.length === 0) {
+                            const parent = ctx5.parentElement;
+                            ctx5.style.display = 'none';
+                            if (!parent.querySelector('.no-data-msg')) {
+                                const msg = document.createElement('div');
+                                msg.className = 'no-data-msg';
+                                msg.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;color:#555;font-size:13px;';
+                                msg.textContent = 'No visit data available';
+                                parent.appendChild(msg);
+                            }
+                        } else {
+                            ctx5.style.display = '';
+                            const old = ctx5.parentElement.querySelector('.no-data-msg');
+                            if (old) old.remove();
+
+                            destroy('_areaChart');
+                            window._areaChart = new Chart(ctx5, {
+                                type: 'line',
+                                data: {
+                                    labels: timePeriods,
+                                    datasets: [
+                                        { 
+                                            label: 'Government', 
+                                            data: timePeriods.map(t => allVisits.filter(v => v.timePeriod === t && v.isGov).length), 
+                                            borderColor: '#3b82f6', 
+                                            fill: true, 
+                                            backgroundColor: 'rgba(59, 130, 246, 0.1)', 
+                                            tension: 0.4 
+                                        },
+                                        { 
+                                            label: 'Private', 
+                                            data: timePeriods.map(t => allVisits.filter(v => v.timePeriod === t && !v.isGov).length), 
+                                            borderColor: '#f59e0b', 
+                                            fill: true, 
+                                            backgroundColor: 'rgba(245, 158, 11, 0.1)', 
+                                            tension: 0.4 
+                                        }
+                                    ]
+                                },
+                                options: { responsive: true, maintainAspectRatio: false }
+                            });
+                        }
                     }
 
                     // 6. Placed vs Non-Placed (Grouped Bar - Programme)
@@ -687,46 +739,51 @@
                         });
                     }
 
-                    // 7. Yearly Activity Grouped Bar
+                    // 7. Programme Activity Grouped Bar
                     const ctxYA = document.getElementById('yearlyActivityChart');
                     if (ctxYA) {
                         const internships = getData('yearlyActivityChart', 'internships');
                         const fieldVisits = getData('yearlyActivityChart', 'fieldVisits');
                         const industrialVisits = getData('yearlyActivityChart', 'industrialVisits');
-                        const getYear = d => {
-                            if (!d) return null;
-                            const s = String(d).trim();
-                            const p = s.split(/[-\/\.]/);
-                            if (p[0].length === 4) return p[0];
-                            if (p.length >= 3 && p[2].length === 4) return p[2];
-                            return null;
+                        
+                        const getProg = obj => {
+                            const p = obj.programme || obj.course || obj.program_name || '';
+                            return p.trim() || 'Other';
                         };
-                        const iYears = internships.map(i => i.year || getYear(i.created_at)).filter(Boolean);
-                        const fvYears = fieldVisits.map(v => getYear(v.visited_date || v.visit_date || v.date)).filter(Boolean);
-                        const ivYears = industrialVisits.map(v => getYear(v.visited_date || v.visit_date || v.date)).filter(Boolean);
-                        const allYears = [...new Set([...iYears, ...fvYears, ...ivYears])].sort();
 
-                        if (!allYears.length) {
-                            ctxYA.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#555;font-size:13px;">No yearly data available</div>';
+                        const allProgsSet = new Set();
+                        internships.forEach(i => allProgsSet.add(getProg(i)));
+                        fieldVisits.forEach(f => allProgsSet.add(getProg(f)));
+                        industrialVisits.forEach(iv => allProgsSet.add(getProg(iv)));
+                        
+                        const allProgs = [...allProgsSet].sort();
+
+                        if (!allProgs.length) {
+                            ctxYA.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#555;font-size:13px;">No activity data available</div>';
                         } else {
-                            const cnt = arr => allYears.map(y => arr.filter(x => x === y).length);
+                            const cnt = (arr, prog) => arr.filter(x => getProg(x) === prog).length;
+                            
+                            const iData = allProgs.map(p => cnt(internships, p));
+                            const fvData = allProgs.map(p => cnt(fieldVisits, p));
+                            const ivData = allProgs.map(p => cnt(industrialVisits, p));
+
                             destroy('_yaChart');
                             window._yaChart = new Chart(ctxYA, {
                                 type: 'bar',
                                 data: {
-                                    labels: allYears,
+                                    labels: allProgs,
                                     datasets: [
-                                        { label: 'Internships', data: cnt(iYears), backgroundColor: 'rgba(59,130,246,0.85)', borderRadius: 6 },
-                                        { label: 'Field Visits', data: cnt(fvYears), backgroundColor: 'rgba(245,158,11,0.85)', borderRadius: 6 },
-                                        { label: 'Industrial Visits', data: cnt(ivYears), backgroundColor: 'rgba(139,92,246,0.85)', borderRadius: 6 }
+                                        { label: 'Internships', data: iData, backgroundColor: 'rgba(59,130,246,0.85)', borderRadius: 6 },
+                                        { label: 'Field Visits', data: fvData, backgroundColor: 'rgba(245,158,11,0.85)', borderRadius: 6 },
+                                        { label: 'Industrial Visits', data: ivData, backgroundColor: 'rgba(139,92,246,0.85)', borderRadius: 6 }
                                     ]
                                 },
                                 options: {
                                     responsive: true, maintainAspectRatio: false,
                                     plugins: { legend: { position: 'top', labels: { color: '#8b949e', padding: 16 } } },
                                     scales: {
-                                        x: { ticks: { color: '#8b949e' }, grid: { color: 'rgba(255,255,255,0.04)' } },
-                                        y: { beginAtZero: true, ticks: { color: '#8b949e', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.04)' } }
+                                        x: { stacked: true, ticks: { color: '#8b949e' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+                                        y: { stacked: true, beginAtZero: true, ticks: { color: '#8b949e', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.04)' } }
                                     }
                                 }
                             });
