@@ -518,7 +518,21 @@ async function getStats(programme = '') {
         buildCount('students', 'programme'),
         buildCount('placements', 'course'),
         buildCount('companies', 'company_name'),
-        buildCount('internships', 'programme'),
+        getInternships(programme).then(list => {
+            const map = new Set();
+            (list || []).forEach(item => {
+                const key = [
+                    (item.internship_place || '').trim(),
+                    (item.year || '').trim(),
+                    (item.batch || '').trim(),
+                    (item.duration_of_intership || '').trim(),
+                    (item.city_of_intership || '').trim(),
+                    (item.type_of_organization || '').trim()
+                ].join('||');
+                map.add(key);
+            });
+            return map.size;
+        }).catch(() => 0),
         buildCount('field_visits', 'program_name'),
         buildCount('industrial_visits', 'program_name'),
         buildCount('jobs', 'title')
