@@ -460,7 +460,7 @@
                         <td>${esc(grp.batch || '-')}</td>
                         <td style="font-family:monospace;font-size:12px;color:var(--text-white);">${formatStudentCell(grp._students, 'enrollment_number', 'white-space:nowrap;margin-bottom:2px;')}</td>
                         <td style="font-weight:600;">${formatStudentCell(grp._students, 'student_name', 'margin-bottom:2px;')}</td>
-                        <td>${formatStudentCell(grp._students, 'programme', 'display:inline-block;background:rgba(99,179,237,0.15);color:#63b3ed;border-radius:4px;padding:1px 6px;margin:1px 0;font-size:11px;')}</td>
+                        <td>${[...new Set(grp._students.map(s => (s.programme || '').trim()).filter(Boolean))].map(v => `<span style="display:inline-block;background:rgba(99,179,237,0.15);color:#63b3ed;border-radius:4px;padding:2px 8px;margin:2px 0;font-size:11px;">${esc(v)}</span>`).join('')}</td>
                         <td>${esc(grp.internship_place || grp.internship_place_01)}</td>
                         <td>${esc(grp.duration_of_intership || grp.duration_of_intership_01)}</td>
                         <td>${esc(grp.city_of_intership || grp.city_of_intership_01)}</td>
