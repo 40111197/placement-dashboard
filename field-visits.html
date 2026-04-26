@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Field Visits - Placement Monitor Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=419">
+    <link rel="stylesheet" href="styles.css?v=420">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 
@@ -170,10 +170,6 @@
                         <input type="text" id="mi-visit_date" class="form-input input-purple"
                             placeholder="e.g. 30.10.2023" required>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label label-purple">Batch</label>
-                        <input type="text" id="mi-batch" class="form-input input-purple" placeholder="e.g. 2024-25">
-                    </div>
                 </div>
 
                 <div class="form-group-row">
@@ -269,10 +265,6 @@
                     <div class="form-group">
                         <label class="form-label label-purple">Visit Date</label>
                         <input type="text" id="ei-visit_date" class="form-input input-purple" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label label-purple">Batch</label>
-                        <input type="text" id="ei-batch" class="form-input input-purple" placeholder="e.g. 2024-25">
                     </div>
                 </div>
 
@@ -426,7 +418,21 @@
             }
 
             // ─── GLOBAL: ADD PROGRAMME ROW ───────────────────────────────────────
-            window.addProgramRow = function (prefix, prog = '', count = '') {
+            const BATCH_OPTIONS = ['2022-2024', '2022-2025', '2023-2025', '2023-2026', '2024-2026', '2024-2027', '2025-2027', '2025-2028'];
+
+            function buildBatchOptions(selected = '') {
+                let opts = `<option value="" disabled ${selected === '' ? 'selected' : ''}>— Select Batch —</option>`;
+                BATCH_OPTIONS.forEach(b => {
+                    const sel = b === selected ? 'selected' : '';
+                    opts += `<option value="${esc(b)}" ${sel}>${esc(b)}</option>`;
+                });
+                if (selected && !BATCH_OPTIONS.includes(selected)) {
+                    opts += `<option value="${esc(selected)}" selected>${esc(selected)}</option>`;
+                }
+                return opts;
+            }
+
+            window.addProgramRow = function (prefix, prog = '', count = '', batch = '') {
                 const container = document.getElementById(prefix + '-program-container');
                 const rowId = 'prog-row-' + Date.now() + Math.random().toString(36).substring(7);
                 const row = document.createElement('div');
@@ -438,6 +444,12 @@
                             <label class="form-label">Programme Name</label>
                             <select class="form-select-prog prog-name-input" required>
                                 ${buildProgOptions(prog)}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Batch</label>
+                            <select class="form-select-prog prog-batch-input">
+                                ${buildBatchOptions(batch)}
                             </select>
                         </div>
                         <div>
@@ -495,10 +507,26 @@
                     return parsed.map(p => `
                         <span class="prog-tag">
                             ${esc(p.program)}
+                            ${p.batch ? `<span class="prog-batch-tag">${esc(p.batch)}</span>` : ''}
                             <span class="prog-count">${p.students}</span>
                         </span>`).join('');
                 }
                 if (progStr && progStr.trim()) return `<span class="prog-tag">${esc(progStr)}</span>`;
+                return '<span style="opacity:0.4; font-size:12px;">—</span>';
+            }
+
+            function formatBatches(progStr, legacyBatch) {
+                const parsed = tryParseJSON(progStr);
+                if (parsed && parsed.length > 0) {
+                    const batches = [...new Set(parsed.map(p => p.batch).filter(Boolean))];
+                    if (batches.length > 0) {
+                        return batches.map(b => `<span style="display:inline-block;background:rgba(251,191,36,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);border-radius:4px;font-size:10px;font-weight:600;padding:2px 6px;margin:1px;">${esc(b)}</span>`).join('');
+                    }
+                }
+                // Fallback to legacy single batch field
+                if (legacyBatch && legacyBatch.trim()) {
+                    return `<span style="display:inline-block;background:rgba(251,191,36,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);border-radius:4px;font-size:10px;font-weight:600;padding:2px 6px;">${esc(legacyBatch)}</span>`;
+                }
                 return '<span style="opacity:0.4; font-size:12px;">—</span>';
             }
 
@@ -549,7 +577,7 @@
                     <td class="no-wrap">${esc(v.visited_date || '—')}</td>
                     <td style="text-align:center; font-weight:600; color: #4ade80;">${esc(v.no_of_student_visited || '0')}</td>
                     <td style="max-width: 280px;">${formatPrograms(v.program_name)}</td>
-                    <td style="text-align:center; font-weight:600; color: var(--navy-light);">${esc(v.batch || '—')}</td>
+                    <td style="max-width: 200px;">${formatBatches(v.program_name, v.batch)}</td>
                     <td style="text-align:center; font-weight:600;">${esc(v.no_of_staff_visited || '0')}</td>
                     <td style="max-width: 260px;">${formatStaff(v.staff_name)}</td>
                     <td class="no-wrap"><span class="status-pill ${String(v.visit_type || '').toLowerCase() === 'private' ? 'not-placed' : 'placed'}" style="font-size:10px; padding: 2px 8px;">${esc(v.visit_type || 'Government')}</span></td>
@@ -607,7 +635,6 @@
                 document.getElementById('ei-visit_date').value = v.visited_date || '';
                 document.getElementById('ei-no_of_staff').value = v.no_of_staff_visited || 0;
                 document.getElementById('ei-visit_type').value = v.visit_type || 'Government';
-                document.getElementById('ei-batch').value = v.batch || '';
                 document.getElementById('ei-city').value = v.city || '';
 
                 // Populate programmes
@@ -615,9 +642,9 @@
                 progContainer.innerHTML = '';
                 const parsedProg = tryParseJSON(v.program_name);
                 if (parsedProg && parsedProg.length > 0) {
-                    parsedProg.forEach(p => window.addProgramRow('ei', p.program, p.students));
+                    parsedProg.forEach(p => window.addProgramRow('ei', p.program, p.students, p.batch || ''));
                 } else if (v.program_name && v.program_name.trim()) {
-                    window.addProgramRow('ei', v.program_name, v.no_of_student_visited || '');
+                    window.addProgramRow('ei', v.program_name, v.no_of_student_visited || '', '');
                 } else {
                     window.addProgramRow('ei');
                 }
@@ -669,6 +696,7 @@
             function collectPrograms(prefix) {
                 return Array.from(document.querySelectorAll(`#${prefix}-program-container .dynamic-row`)).map(row => ({
                     program: (row.querySelector('.prog-name-input').value || '').trim(),
+                    batch: (row.querySelector('.prog-batch-input') ? row.querySelector('.prog-batch-input').value : '') || '',
                     students: parseInt(row.querySelector('.prog-count-input').value) || 0
                 })).filter(p => p.program.length > 0);
             }
@@ -702,7 +730,6 @@
                         program_name: JSON.stringify(programs),
                         no_of_staff_visited: parseInt(document.getElementById('mi-no_of_staff').value) || 0,
                         staff_name: JSON.stringify(staff),
-                        batch: document.getElementById('mi-batch').value,
                         city: document.getElementById('mi-city').value
                     });
                     closeModal(document.getElementById('studentModal'));
@@ -739,7 +766,6 @@
                         program_name: JSON.stringify(programs),
                         no_of_staff_visited: parseInt(document.getElementById('ei-no_of_staff').value) || 0,
                         staff_name: JSON.stringify(staff),
-                        batch: document.getElementById('ei-batch').value,
                         city: document.getElementById('ei-city').value
                     });
                     closeModal(document.getElementById('editFieldVisitModal'));
