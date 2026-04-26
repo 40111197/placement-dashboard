@@ -463,15 +463,33 @@
                     </button>
                 `;
                 container.appendChild(row);
-                // Force-set values after DOM insertion for reliable pre-population in Edit modal
-                if (prog) {
-                    const progSel = row.querySelector('.prog-name-input');
-                    if (progSel) progSel.value = prog;
-                }
-                if (batch) {
-                    const batchSel = row.querySelector('.prog-batch-input');
-                    if (batchSel) batchSel.value = batch;
-                }
+                // Force-set values after DOM insertion — must run after appendChild so elements exist
+                requestAnimationFrame(() => {
+                    if (prog) {
+                        const progSel = row.querySelector('.prog-name-input');
+                        if (progSel) {
+                            progSel.value = prog;
+                            // If value didn't stick (custom option), add it
+                            if (progSel.value !== prog) {
+                                const opt = document.createElement('option');
+                                opt.value = prog; opt.textContent = prog + ' (custom)'; opt.selected = true;
+                                progSel.appendChild(opt);
+                            }
+                        }
+                    }
+                    if (batch) {
+                        const batchSel = row.querySelector('.prog-batch-input');
+                        if (batchSel) {
+                            batchSel.value = batch;
+                            // If value didn't stick (custom batch), add it
+                            if (batchSel.value !== batch) {
+                                const opt = document.createElement('option');
+                                opt.value = batch; opt.textContent = batch; opt.selected = true;
+                                batchSel.appendChild(opt);
+                            }
+                        }
+                    }
+                });
             };
 
             // ─── GLOBAL: ADD STAFF ROW ────────────────────────────────────────────
@@ -650,12 +668,13 @@
                 const progContainer = document.getElementById('ei-program-container');
                 progContainer.innerHTML = '';
                 const parsedProg = tryParseJSON(v.program_name);
+                const legacyBatch = v.batch || '';  // top-level batch for old records
                 if (parsedProg && parsedProg.length > 0) {
-                    parsedProg.forEach(p => window.addProgramRow('ei', p.program, p.students, p.batch || ''));
+                    parsedProg.forEach(p => window.addProgramRow('ei', p.program, p.students, p.batch || legacyBatch));
                 } else if (v.program_name && v.program_name.trim()) {
-                    window.addProgramRow('ei', v.program_name, v.no_of_student_visited || '', '');
+                    window.addProgramRow('ei', v.program_name, v.no_of_student_visited || '', legacyBatch);
                 } else {
-                    window.addProgramRow('ei');
+                    window.addProgramRow('ei', '', '', legacyBatch);
                 }
 
                 // Populate staff
