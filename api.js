@@ -423,9 +423,10 @@ async function getFieldVisits(program = '') {
 }
 
 async function createFieldVisit(payload) {
-    const { data, error } = await _sb.from('field_visits').insert(payload).select().single();
+    const isArray = Array.isArray(payload);
+    const { data, error } = await _sb.from('field_visits').insert(payload).select();
     sbCheck(error, 'createFieldVisit');
-    return data;
+    return isArray ? data : data[0];
 }
 
 async function updateFieldVisit(id, payload) {

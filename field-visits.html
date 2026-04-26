@@ -418,12 +418,13 @@
             }
 
             // ─── GLOBAL: ADD PROGRAMME ROW ───────────────────────────────────────
-            window.addProgramRow = function (prefix, prog = '', count = '', batch = '') {
+            window.addProgramRow = function (prefix, prog = '', count = '', batch = '', existingId = '') {
                 const container = document.getElementById(prefix + '-program-container');
                 const rowId = 'prog-row-' + Date.now() + Math.random().toString(36).substring(7);
                 const row = document.createElement('div');
                 row.className = 'prog-row dynamic-row';
                 row.id = rowId;
+                if (existingId) row.dataset.existingId = existingId;
                 row.innerHTML = `
                     <div class="prog-row-inner">
                         <div>
@@ -500,29 +501,81 @@
                 return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
             }
 
-            function formatPrograms(progStr) {
-                const parsed = tryParseJSON(progStr);
-                if (parsed && parsed.length > 0) {
-                    return parsed.map(p => `
+            function tryParseJSON(str) {
+                try {
+                    const parsed = JSON.parse(str);
+                    return Array.isArray(parsed) ? parsed : null;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            // Group field visits by field_visited + visit_date + visit_type + city + staff
+            function groupFieldVisits(list) {
+                const groups = [];
+                const map = new Map();
+                list.forEach(item => {
+                    const key = [
+                        (item.field_visited || '').trim(),
+                        (item.visited_date || '').trim(),
+                        (item.visit_type || '').trim(),
+                        (item.city || '').trim(),
+                        (item.staff_name || '').trim() // Use raw staff string as key grouping since staff is shared
+                    ].join('||');
+                    
+                    if (!map.has(key)) {
+                        map.set(key, { ...item, _programmes: [], _ids: [] });
+                        groups.push(map.get(key));
+                    }
+                    const g = map.get(key);
+                    g._ids.push(item.id);
+
+                    // Support legacy JSON arrays OR new flattened row format
+                    const parsedProg = tryParseJSON(item.program_name);
+                    if (parsedProg && parsedProg.length > 0) {
+                        parsedProg.forEach(p => {
+                            g._programmes.push({
+                                existingId: item.id,
+                                program: p.program || '',
+                                batch: p.batch || item.batch || '',
+                                students: parseInt(p.students) || parseInt(item.no_of_student_visited) || 0
+                            });
+                        });
+                    } else if (item.program_name && item.program_name.trim()) {
+                        g._programmes.push({
+                            existingId: item.id,
+                            program: item.program_name,
+                            batch: item.batch || '',
+                            students: parseInt(item.no_of_student_visited) || 0
+                        });
+                    }
+                });
+
+                // Recalculate total students for the group
+                groups.forEach(g => {
+                    g.no_of_student_visited = g._programmes.reduce((sum, p) => sum + p.students, 0);
+                });
+
+                return groups;
+            }
+
+            function formatProgramsGroup(programmes) {
+                if (programmes && programmes.length > 0) {
+                    const uniqueProgs = [...new Set(programmes.map(p => p.program).filter(Boolean))];
+                    return uniqueProgs.map(prog => `
                         <span class="prog-tag">
-                            ${esc(p.program)}
+                            ${esc(prog)}
                         </span>`).join('');
                 }
-                if (progStr && progStr.trim()) return `<span class="prog-tag">${esc(progStr)}</span>`;
                 return '<span style="opacity:0.4; font-size:12px;">—</span>';
             }
 
-            function formatBatches(progStr, legacyBatch) {
-                const parsed = tryParseJSON(progStr);
-                if (parsed && parsed.length > 0) {
-                    const batches = [...new Set(parsed.map(p => p.batch).filter(Boolean))];
+            function formatBatchesGroup(programmes) {
+                if (programmes && programmes.length > 0) {
+                    const batches = [...new Set(programmes.map(p => p.batch).filter(Boolean))];
                     if (batches.length > 0) {
                         return batches.map(b => `<span style="display:inline-block;background:rgba(251,191,36,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);border-radius:4px;font-size:10px;font-weight:600;padding:2px 6px;margin:1px;">${esc(b)}</span>`).join('');
                     }
-                }
-                // Fallback to legacy single batch field
-                if (legacyBatch && legacyBatch.trim()) {
-                    return `<span style="display:inline-block;background:rgba(251,191,36,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);border-radius:4px;font-size:10px;font-weight:600;padding:2px 6px;">${esc(legacyBatch)}</span>`;
                 }
                 return '<span style="opacity:0.4; font-size:12px;">—</span>';
             }
@@ -550,14 +603,16 @@
             function render(list) {
                 if (!tbody) return;
 
-                const totalItems = list.length;
+                const groupedData = groupFieldVisits(list);
+
+                const totalItems = groupedData.length;
                 const totalPages = Math.ceil(totalItems / pageSize);
                 if (currentPage > totalPages) currentPage = totalPages || 1;
                 if (currentPage < 1) currentPage = 1;
 
                 const start = (currentPage - 1) * pageSize;
                 const end = start + pageSize;
-                const paginatedItems = list.slice(start, end);
+                const paginatedGroups = groupedData.slice(start, end);
 
                 document.getElementById('totalItems').textContent = totalItems;
                 document.getElementById('startIndex').textContent = totalItems === 0 ? 0 : start + 1;
@@ -567,25 +622,44 @@
                 document.getElementById('prevPage').disabled = (currentPage === 1);
                 document.getElementById('nextPage').disabled = (currentPage === totalPages || totalPages === 0);
 
-                tbody.innerHTML = paginatedItems.map((v, i) => `
-                <tr data-id="${v.id}">
+                if (!totalItems) {
+                    tbody.innerHTML = '<tr><td colspan="11" style="padding:40px;text-align:center;opacity:0.5;">No field visits found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = paginatedGroups.map((grp, i) => `
+                <tr data-ids="${grp._ids.join(',')}">
                     <td style="text-align:center;">${start + i + 1}</td>
-                    <td class="no-wrap" style="color:var(--navy);font-weight:600;">${esc(v.field_visited || '—')}</td>
-                    <td class="no-wrap">${esc(v.visited_date || '—')}</td>
-                    <td style="text-align:center; font-weight:600; color: #4ade80;">${esc(v.no_of_student_visited || '0')}</td>
-                    <td style="max-width: 280px;">${formatPrograms(v.program_name)}</td>
-                    <td style="max-width: 200px;">${formatBatches(v.program_name, v.batch)}</td>
-                    <td style="text-align:center; font-weight:600;">${esc(v.no_of_staff_visited || '0')}</td>
-                    <td style="max-width: 260px;">${formatStaff(v.staff_name)}</td>
-                    <td class="no-wrap"><span class="status-pill ${String(v.visit_type || '').toLowerCase() === 'private' ? 'not-placed' : 'placed'}" style="font-size:10px; padding: 2px 8px;">${esc(v.visit_type || 'Government')}</span></td>
-                    <td class="no-wrap">${esc(v.city || '—')}</td>
+                    <td class="no-wrap" style="color:var(--navy);font-weight:600;">${esc(grp.field_visited || '—')}</td>
+                    <td class="no-wrap">${esc(grp.visited_date || '—')}</td>
+                    <td style="text-align:center; font-weight:600; color: #4ade80;">${esc(grp.no_of_student_visited || '0')}</td>
+                    <td style="max-width: 280px;">${formatProgramsGroup(grp._programmes)}</td>
+                    <td style="max-width: 200px;">${formatBatchesGroup(grp._programmes)}</td>
+                    <td style="text-align:center; font-weight:600;">${esc(grp.no_of_staff_visited || '0')}</td>
+                    <td style="max-width: 260px;">${formatStaff(grp.staff_name)}</td>
+                    <td class="no-wrap"><span class="status-pill ${String(grp.visit_type || '').toLowerCase() === 'private' ? 'not-placed' : 'placed'}" style="font-size:10px; padding: 2px 8px;">${esc(grp.visit_type || 'Government')}</span></td>
+                    <td class="no-wrap">${esc(grp.city || '—')}</td>
                     <td>
                         <div style="display:flex;gap:6px;justify-content:center; align-items:center;">
-                            <button class="action-icon btn-edit" onclick="window.__fvEdit('${v.id}')" title="Edit"><i class="bi bi-pencil-square"></i></button>
-                            <button class="action-icon btn-remove" id="del-btn-${v.id}" onclick="window.__fvDelete('${v.id}')" title="Delete"><i class="bi bi-trash"></i></button>
+                            <button class="action-icon btn-edit-fv" data-ids="${grp._ids.join(',')}" title="Edit"><i class="bi bi-pencil-square"></i></button>
+                            <button class="action-icon btn-del-fv" data-ids="${grp._ids.join(',')}" title="Delete"><i class="bi bi-trash"></i></button>
                         </div>
                     </td>
                 </tr>`).join('');
+
+                // Re-bind listeners for edit/delete
+                tbody.querySelectorAll('.btn-edit-fv').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const ids = e.target.closest('button').dataset.ids;
+                        window.__fvEdit(ids);
+                    });
+                });
+                tbody.querySelectorAll('.btn-del-fv').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const ids = e.target.closest('button').dataset.ids;
+                        window.__fvDelete(ids, e.target.closest('button'));
+                    });
+                });
 
                 document.getElementById('prevPage').onclick = () => { if (currentPage > 1) { currentPage--; render(list); } };
                 document.getElementById('nextPage').onclick = () => { if (currentPage < totalPages) { currentPage++; render(list); } };
@@ -605,56 +679,77 @@
             });
 
             // ─── GLOBAL: DELETE ───────────────────────────────────────────────────
-            window.__fvDelete = async function (id) {
-                console.log('[FV] Delete clicked for id:', id);
+            window.__fvDelete = async function (idsRaw, btnEl) {
+                console.log('[FV] Delete clicked for ids:', idsRaw);
                 if (!confirm('Delete this field visit?')) return;
-                const btn = document.getElementById('del-btn-' + id);
                 try {
-                    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-hourglass-split"></i>'; }
-                    await deleteFieldVisit(id);
-                    console.log('[FV] Delete success for id:', id);
+                    if (btnEl) { btnEl.disabled = true; btnEl.innerHTML = '<i class="bi bi-hourglass-split"></i>'; }
+                    const ids = idsRaw.split(',').map(Number).filter(Boolean);
+                    await Promise.all(ids.map(id => deleteFieldVisit(id)));
+                    console.log('[FV] Delete success for ids:', idsRaw);
                     load();
                 } catch (err) {
                     console.error('[FV] Delete error:', err);
                     alert('Delete failed: ' + err.message);
-                    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-trash"></i>'; }
+                    if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '<i class="bi bi-trash"></i>'; }
                 }
             };
 
             // ─── GLOBAL: EDIT (open modal) ────────────────────────────────────────
-            window.__fvEdit = function (id) {
-                console.log('[FV] Edit clicked for id:', id);
-                const v = fieldVisitsData.find(item => String(item.id) === String(id));
-                if (!v) { console.warn('[FV] Edit: record not found for id:', id); return; }
+            window.__fvEdit = function (idsRaw) {
+                console.log('[FV] Edit clicked for ids:', idsRaw);
+                const ids = idsRaw.split(',').map(Number).filter(Boolean);
+                const items = fieldVisitsData.filter(item => ids.includes(item.id));
+                if (items.length === 0) { console.warn('[FV] Edit: records not found for ids:', idsRaw); return; }
+                const primary = items[0]; // shared fields
 
-                document.getElementById('ei-id').value = v.id;
-                document.getElementById('ei-field_visited').value = v.field_visited || '';
-                document.getElementById('ei-visit_date').value = v.visited_date || '';
-                document.getElementById('ei-no_of_staff').value = v.no_of_staff_visited || 0;
-                document.getElementById('ei-visit_type').value = v.visit_type || 'Government';
-                document.getElementById('ei-city').value = v.city || '';
+                document.getElementById('ei-id').value = idsRaw;
+                document.getElementById('ei-field_visited').value = primary.field_visited || '';
+                document.getElementById('ei-visit_date').value = primary.visited_date || '';
+                document.getElementById('ei-no_of_staff').value = primary.no_of_staff_visited || 0;
+                document.getElementById('ei-visit_type').value = primary.visit_type || 'Government';
+                document.getElementById('ei-city').value = primary.city || '';
+
+                // Extract all programmes for this group
+                const allProgrammes = [];
+                items.forEach(item => {
+                    const parsedProg = tryParseJSON(item.program_name);
+                    if (parsedProg && parsedProg.length > 0) {
+                        parsedProg.forEach(p => {
+                            allProgrammes.push({
+                                existingId: item.id,
+                                program: p.program || '',
+                                batch: p.batch || item.batch || '',
+                                students: parseInt(p.students) || parseInt(item.no_of_student_visited) || 0
+                            });
+                        });
+                    } else if (item.program_name && item.program_name.trim()) {
+                        allProgrammes.push({
+                            existingId: item.id,
+                            program: item.program_name,
+                            batch: item.batch || '',
+                            students: parseInt(item.no_of_student_visited) || 0
+                        });
+                    }
+                });
 
                 // Populate programmes
                 const progContainer = document.getElementById('ei-program-container');
                 progContainer.innerHTML = '';
-                const parsedProg = tryParseJSON(v.program_name);
-                const legacyBatch = v.batch || '';  // top-level batch for old records
-                if (parsedProg && parsedProg.length > 0) {
-                    parsedProg.forEach(p => window.addProgramRow('ei', p.program, p.students, p.batch || legacyBatch));
-                } else if (v.program_name && v.program_name.trim()) {
-                    window.addProgramRow('ei', v.program_name, v.no_of_student_visited || '', legacyBatch);
+                if (allProgrammes.length > 0) {
+                    allProgrammes.forEach(p => window.addProgramRow('ei', p.program, p.students, p.batch, p.existingId));
                 } else {
-                    window.addProgramRow('ei', '', '', legacyBatch);
+                    window.addProgramRow('ei');
                 }
 
-                // Populate staff
+                // Populate staff (from primary since they are shared)
                 const staffContainer = document.getElementById('ei-staff-container');
                 staffContainer.innerHTML = '';
-                const parsedStaff = tryParseJSON(v.staff_name);
+                const parsedStaff = tryParseJSON(primary.staff_name);
                 if (parsedStaff && parsedStaff.length > 0) {
                     parsedStaff.forEach(s => window.addStaffRow('ei', s));
-                } else if (v.staff_name && v.staff_name.trim()) {
-                    window.addStaffRow('ei', v.staff_name);
+                } else if (primary.staff_name && primary.staff_name.trim()) {
+                    window.addStaffRow('ei', primary.staff_name);
                 } else {
                     window.addStaffRow('ei');
                 }
@@ -693,6 +788,7 @@
             // ─── COLLECT FORM DATA HELPERS ────────────────────────────────────────
             function collectPrograms(prefix) {
                 return Array.from(document.querySelectorAll(`#${prefix}-program-container .dynamic-row`)).map(row => ({
+                    existingId: row.dataset.existingId || null,
                     program: (row.querySelector('.prog-name-input').value || '').trim(),
                     batch: (row.querySelector('.prog-batch-input') ? row.querySelector('.prog-batch-input').value : '') || '',
                     students: parseInt(row.querySelector('.prog-count-input').value) || 0
@@ -716,20 +812,26 @@
                 try {
                     const programs = collectPrograms('mi');
                     const staff = collectStaff('mi');
-                    const totalStudents = programs.reduce((sum, p) => sum + p.students, 0);
 
                     if (programs.length === 0) throw new Error('Please add at least one programme entry.');
 
-                    await createFieldVisit({
+                    const basePayload = {
                         field_visited: document.getElementById('mi-field_visited').value,
                         visit_type: document.getElementById('mi-visit_type').value,
                         visited_date: document.getElementById('mi-visit_date').value,
-                        no_of_student_visited: totalStudents,
-                        program_name: JSON.stringify(programs),
                         no_of_staff_visited: parseInt(document.getElementById('mi-no_of_staff').value) || 0,
                         staff_name: JSON.stringify(staff),
                         city: document.getElementById('mi-city').value
-                    });
+                    };
+
+                    const payloads = programs.map(p => ({
+                        ...basePayload,
+                        program_name: p.program,
+                        batch: p.batch,
+                        no_of_student_visited: p.students
+                    }));
+
+                    await createFieldVisit(payloads);
                     closeModal(document.getElementById('studentModal'));
                     document.getElementById('studentForm').reset();
                     load();
@@ -743,8 +845,8 @@
             // ─── SAVE EDITED FIELD VISIT ──────────────────────────────────────────
             document.getElementById('editFieldVisitForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const id = document.getElementById('ei-id').value;
-                const errEl = document.getElementById('editInternModalError');
+                const idsRaw = document.getElementById('ei-id').value;
+                const errEl = document.getElementById('editFieldVisitModalError');
                 const btn = document.getElementById('editFieldVisitSubmitBtn');
                 if (errEl) errEl.style.display = 'none';
                 btn.disabled = true; btn.textContent = 'Saving…';
@@ -752,21 +854,45 @@
                 try {
                     const programs = collectPrograms('ei');
                     const staff = collectStaff('ei');
-                    const totalStudents = programs.reduce((sum, p) => sum + p.students, 0);
+                    const originalIds = idsRaw.split(',').map(Number).filter(Boolean);
 
                     if (programs.length === 0) throw new Error('Please add at least one programme entry.');
 
-                    await updateFieldVisit(id, {
+                    const basePayload = {
                         field_visited: document.getElementById('ei-field_visited').value,
                         visit_type: document.getElementById('ei-visit_type').value,
                         visited_date: document.getElementById('ei-visit_date').value,
-                        no_of_student_visited: totalStudents,
-                        program_name: JSON.stringify(programs),
                         no_of_staff_visited: parseInt(document.getElementById('ei-no_of_staff').value) || 0,
                         staff_name: JSON.stringify(staff),
                         city: document.getElementById('ei-city').value
-                    });
+                    };
+
+                    const updatedIds = [];
+
+                    for (const p of programs) {
+                        const payload = {
+                            ...basePayload,
+                            program_name: p.program,
+                            batch: p.batch,
+                            no_of_student_visited: p.students
+                        };
+                        
+                        if (p.existingId) {
+                            await updateFieldVisit(p.existingId, payload);
+                            updatedIds.push(Number(p.existingId));
+                        } else {
+                            await createFieldVisit(payload);
+                        }
+                    }
+
+                    // Delete original records that were removed from the UI
+                    const removedIds = originalIds.filter(id => !updatedIds.includes(id));
+                    if (removedIds.length > 0) {
+                        await Promise.all(removedIds.map(id => deleteFieldVisit(id)));
+                    }
+
                     closeModal(document.getElementById('editFieldVisitModal'));
+                    document.getElementById('editFieldVisitForm').reset();
                     load();
                 } catch (err) {
                     if (errEl) { errEl.textContent = err.message; errEl.style.display = 'block'; }
