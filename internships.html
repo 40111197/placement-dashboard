@@ -470,15 +470,15 @@
                 tbody.innerHTML = paginatedGroups.map((grp, i) => `
                     <tr data-ids="${grp._ids.join(',')}"> 
                         <td style="text-align:center;">${start + i + 1}</td>
-                        <td>${esc(grp.year)}</td>
-                        <td>${esc(grp.batch || '-')}</td>
+                        <td><span style="display:inline-block;background:rgba(129,140,248,0.12);color:#818cf8;border:1px solid rgba(129,140,248,0.3);border-radius:4px;font-size:11px;font-weight:700;padding:2px 8px;">${esc(grp.year || '—')}</span></td>
+                        <td style="word-break:break-word;white-space:normal;"><span style="display:inline-block;background:rgba(251,191,36,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);border-radius:4px;font-size:11px;font-weight:600;padding:2px 8px;">${esc(grp.batch || '—')}</span></td>
                         <td style="font-family:monospace;font-size:12px;color:var(--text-white);">${formatStudentCell(grp._students, 'enrollment_number', 'white-space:nowrap;margin-bottom:2px;')}</td>
                         <td style="font-weight:600;">${formatStudentCell(grp._students, 'student_name', 'margin-bottom:2px;')}</td>
                         <td>${[...new Set(grp._students.map(s => (s.programme || '').trim()).filter(Boolean))].map(v => `<span style="display:inline-block;background:rgba(99,179,237,0.15);color:#63b3ed;border-radius:4px;padding:2px 8px;margin:2px 0;font-size:11px;">${esc(v)}</span>`).join('')}</td>
-                        <td title="${esc(grp.internship_place || grp.internship_place_01)}">${esc(grp.internship_place || grp.internship_place_01)}</td>
-                        <td title="${esc(grp.duration_of_intership || grp.duration_of_intership_01)}">${esc(grp.duration_of_intership || grp.duration_of_intership_01)}</td>
-                        <td title="${esc(grp.city_of_intership || grp.city_of_intership_01)}">${esc(grp.city_of_intership || grp.city_of_intership_01)}</td>
-                        <td title="${esc(grp.type_of_organization)}">${esc(grp.type_of_organization)}</td>
+                        <td style="word-break:break-word;white-space:normal;color:var(--navy-light);font-weight:600;" title="${esc(grp.internship_place || grp.internship_place_01)}">${esc(grp.internship_place || grp.internship_place_01 || '—')}</td>
+                        <td title="${esc(grp.duration_of_intership || grp.duration_of_intership_01)}"><span style="display:inline-block;background:rgba(34,211,238,0.1);color:#22d3ee;border-radius:4px;font-size:11px;font-weight:600;padding:2px 7px;">${esc(grp.duration_of_intership || grp.duration_of_intership_01 || '—')}</span></td>
+                        <td title="${esc(grp.city_of_intership || grp.city_of_intership_01)}">${esc(grp.city_of_intership || grp.city_of_intership_01 || '—')}</td>
+                        <td title="${esc(grp.type_of_organization)}"><span class="status-pill ${String(grp.type_of_organization || '').toLowerCase().includes('gov') ? 'placed' : 'not-placed'}" style="font-size:10px;padding:2px 8px;">${esc(grp.type_of_organization || '—')}</span></td>
                         <td>
                             <div style="display:flex;gap:4px;justify-content:center;">
                                 <button class="action-icon btn-edit-intern" data-ids="${grp._ids.join(',')}" title="Edit"><i class="bi bi-pencil-square"></i></button>
