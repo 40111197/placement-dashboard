@@ -506,7 +506,6 @@
                     return parsed.map(p => `
                         <span class="prog-tag">
                             ${esc(p.program)}
-                            <span class="prog-count">${p.students}</span>
                         </span>`).join('');
                 }
                 if (progStr && progStr.trim()) return `<span class="prog-tag">${esc(progStr)}</span>`;
