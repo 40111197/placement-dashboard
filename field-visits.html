@@ -463,6 +463,15 @@
                     </button>
                 `;
                 container.appendChild(row);
+                // Force-set values after DOM insertion for reliable pre-population in Edit modal
+                if (prog) {
+                    const progSel = row.querySelector('.prog-name-input');
+                    if (progSel) progSel.value = prog;
+                }
+                if (batch) {
+                    const batchSel = row.querySelector('.prog-batch-input');
+                    if (batchSel) batchSel.value = batch;
+                }
             };
 
             // ─── GLOBAL: ADD STAFF ROW ────────────────────────────────────────────
