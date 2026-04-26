@@ -21,7 +21,8 @@
     <script src="https://cdn.jsdelivr.net/npm/highcharts@11/highcharts.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/highcharts@11/highcharts-3d.js"></script>
     <!-- Using Chart.js for consistent charting & Highcharts 3D for Org breakdown -->
-    <link rel="stylesheet" href="styles.css?v=410">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=419">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 
@@ -185,6 +186,10 @@
                     <h3 style="margin:0;">Programme Activity Count &nbsp;<small
                             style="font-size:11px;color:#555;font-weight:400;">Internships · Field Visits · Industrial
                             Visits</small></h3>
+                    <select class="chart-year-filter select-unified" data-chart="yearlyActivityChart"
+                        onchange="renderCharts()" style="padding:4px 8px; font-size:11px; width:auto; height:auto;">
+                        <option value="All">All Years</option>
+                    </select>
                 </div>
                 <div class="chart-container" style="height:280px;">
                     <canvas id="yearlyActivityChart"></canvas>
@@ -327,11 +332,22 @@
                     const yr = parseInt(String(item.year).trim());
                     if (!isNaN(yr) && yr > 2000 && yr < 2100) return yr;
                 }
-                const dateStr = item.created_at || item.placement_date || item.visit_date || item.visited_date || '';
+                const dateStr = item.date || item.placement_date || item.visit_date || item.visited_date || item.created_at || '';
                 if (!dateStr) return null;
-                const m = dateStr.match(/\b(20\d{2})\b/);
-                if (m) return parseInt(m[1], 10);
-                return parseInt(dateStr.split('-')[0], 10) || null;
+                
+                // Try to find 4-digit year like 2023, 2024
+                const m4 = String(dateStr).match(/\b(20\d{2})\b/);
+                if (m4) return parseInt(m4[1], 10);
+                
+                // Try to find DD.MM.YY format (e.g. 15.02.23)
+                const m2 = String(dateStr).match(/\b\d{1,2}[\.\/]\d{1,2}[\.\/](\d{2})\b/);
+                if (m2) return 2000 + parseInt(m2[1], 10);
+
+                // Try to split by '-' (e.g. 2023-05-15)
+                const yrFallback = parseInt(String(dateStr).split('-')[0], 10);
+                if (!isNaN(yrFallback) && yrFallback > 2000 && yrFallback < 2100) return yrFallback;
+                
+                return null;
             }
 
             async function load() {
@@ -448,7 +464,21 @@
                 set('rpt-companies', stats.total_companies || new Set(placements.map(p => p.company)).size);
                 set('rpt-field-visits', fieldVisits.length);
                 set('rpt-industrial-visits', (industrialVisits || []).length);
-                set('rpt-internships', (internships || []).length);
+                
+                // Group internships to match the unique count on internships.html
+                const groupedInternships = new Set();
+                (internships || []).forEach(item => {
+                    const key = [
+                        (item.internship_place || '').trim(),
+                        (item.year || '').trim(),
+                        (item.batch || '').trim(),
+                        (item.duration_of_intership || '').trim(),
+                        (item.city_of_intership || '').trim(),
+                        (item.type_of_organization || '').trim()
+                    ].join('||');
+                    groupedInternships.add(key);
+                });
+                set('rpt-internships', groupedInternships.size);
 
                 const parseLPA = (s) => {
                     let num = parseFloat(String(s || '').replace(/[^\d.]/g, '')) || 0;
@@ -491,6 +521,45 @@
                             case 'industrialVisits': return industrialVisits.filter(iv => getEventYear(iv) === year);
                         }
                         return window.globalRawData[datasetName];
+                    };
+
+                    const getProgs = obj => {
+                        const raw = obj.programme || obj.course || obj.program_name || '';
+                        if (!raw) return ['Other'];
+
+                        const extract = (val) => {
+                            if (!val) return ['Other'];
+                            if (Array.isArray(val)) {
+                                let names = [];
+                                val.forEach(item => {
+                                    if (item && typeof item === 'object') {
+                                        names.push(item.program || item.programme || item.program_name || 'Other');
+                                    } else {
+                                        names.push(item || 'Other');
+                                    }
+                                });
+                                return names;
+                            }
+                            if (typeof val === 'object') {
+                                return [val.program || val.programme || val.program_name || 'Other'];
+                            }
+                            if (typeof val === 'string') {
+                                let s = val.trim();
+                                if (!s) return ['Other'];
+                                // Try parsing if it looks like JSON
+                                if (s.startsWith('[') || s.startsWith('{') || (s.startsWith('"') && s.endsWith('"'))) {
+                                    try {
+                                        const parsed = JSON.parse(s);
+                                        return extract(parsed);
+                                    } catch (e) {}
+                                }
+                                return [s];
+                            }
+                            return ['Other'];
+                        };
+
+                        const results = extract(raw);
+                        return [...new Set(results.map(n => String(n).trim() || 'Other'))];
                     };
 
                     // 1. Placement Status
@@ -538,12 +607,12 @@
                         const map = {};
                         const deptStats = {};
                         studentsRaw.forEach(s => {
-                            const p = s.programme || 'Other';
-                            map[p] = (map[p] || 0) + 1;
-
-                            if (!deptStats[p]) deptStats[p] = { total: 0, placed: 0 };
-                            deptStats[p].total++;
-                            if (activePlacements.has(String(s.enrollment_number).trim())) deptStats[p].placed++;
+                            getProgs(s).forEach(p => {
+                                map[p] = (map[p] || 0) + 1;
+                                if (!deptStats[p]) deptStats[p] = { total: 0, placed: 0 };
+                                deptStats[p].total++;
+                                if (activePlacements.has(String(s.enrollment_number).trim())) deptStats[p].placed++;
+                            });
                         });
 
                         const barsEl = document.getElementById('deptBars');
@@ -577,8 +646,9 @@
                         const internships = getData('internshipProgrammeChart', 'internships');
                         const map = {};
                         internships.forEach(i => {
-                            const p = i.programme || i.course || i.program_name || 'Other';
-                            if (p) map[p] = (map[p] || 0) + 1;
+                            getProgs(i).forEach(p => {
+                                map[p] = (map[p] || 0) + 1;
+                            });
                         });
                         const labels = Object.keys(map);
                         const values = Object.values(map);
@@ -619,13 +689,17 @@
                     if (ctxFV) {
                         const fieldVisits = getData('fieldVisitChart', 'fieldVisits');
                         const mapFV = {};
-                        fieldVisits.forEach(v => { const p = v.program_name || v.programme || v.course || 'Other'; mapFV[p] = (mapFV[p] || 0) + 1; });
+                        fieldVisits.forEach(v => {
+                            getProgs(v).forEach(p => {
+                                mapFV[p] = (mapFV[p] || 0) + 1;
+                            });
+                        });
                         destroy('_fvChart');
                         window._fvChart = new Chart(ctxFV, {
                             type: 'bar',
                             data: {
-                                labels: Object.keys(mapFV),
-                                datasets: [{ label: 'Field Visits', data: Object.values(mapFV), backgroundColor: '#f59e0b' }]
+                                labels: Object.keys(mapFV).sort(),
+                                datasets: [{ label: 'Field Visits', data: Object.keys(mapFV).sort().map(p => mapFV[p]), backgroundColor: '#f59e0b' }]
                             },
                             options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
                         });
@@ -722,8 +796,16 @@
                         const studentsRaw = getData('placedNonProgrammeChart', 'studentsRaw');
                         const placements = getData('placedNonProgrammeChart', 'placements');
                         const activePlacements = new Set(placements.map(p => String(p.enrollment_number).trim()));
-                        const getLabel = s => s.programme || 'Other';
-                        const labels = [...new Set(studentsRaw.map(s => getLabel(s)))].sort();
+                        
+                        const stats = {};
+                        studentsRaw.forEach(s => {
+                            getProgs(s).forEach(p => {
+                                if (!stats[p]) stats[p] = { placed: 0, nonPlaced: 0 };
+                                if (activePlacements.has(String(s.enrollment_number).trim())) stats[p].placed++;
+                                else stats[p].nonPlaced++;
+                            });
+                        });
+                        const labels = Object.keys(stats).sort();
 
                         destroy('_pnChart');
                         window._pnChart = new Chart(ctx6, {
@@ -731,8 +813,8 @@
                             data: {
                                 labels: labels.length ? labels : ['No data'],
                                 datasets: [
-                                    { label: 'Placed', data: labels.length ? labels.map(l => studentsRaw.filter(s => getLabel(s) === l && activePlacements.has(String(s.enrollment_number).trim())).length) : [0], backgroundColor: '#22c55e' },
-                                    { label: 'Unplaced', data: labels.length ? labels.map(l => studentsRaw.filter(s => getLabel(s) === l && !activePlacements.has(String(s.enrollment_number).trim())).length) : [0], backgroundColor: '#ef4444' }
+                                    { label: 'Placed', data: labels.length ? labels.map(l => stats[l].placed) : [0], backgroundColor: '#22c55e' },
+                                    { label: 'Unplaced', data: labels.length ? labels.map(l => stats[l].nonPlaced) : [0], backgroundColor: '#ef4444' }
                                 ]
                             },
                             options: { responsive: true, maintainAspectRatio: false }
@@ -746,48 +828,36 @@
                         const fieldVisits = getData('yearlyActivityChart', 'fieldVisits');
                         const industrialVisits = getData('yearlyActivityChart', 'industrialVisits');
                         
-                        const getProg = obj => {
-                            const p = obj.programme || obj.course || obj.program_name || '';
-                            return p.trim() || 'Other';
-                        };
+                        // (Using centralized getProgs)
 
-                        const allProgsSet = new Set();
-                        internships.forEach(i => allProgsSet.add(getProg(i)));
-                        fieldVisits.forEach(f => allProgsSet.add(getProg(f)));
-                        industrialVisits.forEach(iv => allProgsSet.add(getProg(iv)));
+                        const allProgs = ['BACPA', 'BCPS', 'MCRM', 'PGDCSDF', 'PGDSCIM'];
                         
-                        const allProgs = [...allProgsSet].sort();
+                        const cnt = (arr, prog) => arr.filter(x => getProgs(x).includes(prog)).length;
+                        
+                        const iData = allProgs.map(p => cnt(internships, p));
+                        const fvData = allProgs.map(p => cnt(fieldVisits, p));
+                        const ivData = allProgs.map(p => cnt(industrialVisits, p));
 
-                        if (!allProgs.length) {
-                            ctxYA.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#555;font-size:13px;">No activity data available</div>';
-                        } else {
-                            const cnt = (arr, prog) => arr.filter(x => getProg(x) === prog).length;
-                            
-                            const iData = allProgs.map(p => cnt(internships, p));
-                            const fvData = allProgs.map(p => cnt(fieldVisits, p));
-                            const ivData = allProgs.map(p => cnt(industrialVisits, p));
-
-                            destroy('_yaChart');
-                            window._yaChart = new Chart(ctxYA, {
-                                type: 'bar',
-                                data: {
-                                    labels: allProgs,
-                                    datasets: [
-                                        { label: 'Internships', data: iData, backgroundColor: 'rgba(59,130,246,0.85)', borderRadius: 6 },
-                                        { label: 'Field Visits', data: fvData, backgroundColor: 'rgba(245,158,11,0.85)', borderRadius: 6 },
-                                        { label: 'Industrial Visits', data: ivData, backgroundColor: 'rgba(139,92,246,0.85)', borderRadius: 6 }
-                                    ]
-                                },
-                                options: {
-                                    responsive: true, maintainAspectRatio: false,
-                                    plugins: { legend: { position: 'top', labels: { color: '#8b949e', padding: 16 } } },
-                                    scales: {
-                                        x: { stacked: true, ticks: { color: '#8b949e' }, grid: { color: 'rgba(255,255,255,0.04)' } },
-                                        y: { stacked: true, beginAtZero: true, ticks: { color: '#8b949e', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.04)' } }
-                                    }
+                        destroy('_yaChart');
+                        window._yaChart = new Chart(ctxYA, {
+                            type: 'bar',
+                            data: {
+                                labels: allProgs,
+                                datasets: [
+                                    { label: 'Internships', data: iData, backgroundColor: '#3b82f6', borderRadius: 4 },
+                                    { label: 'Field Visits', data: fvData, backgroundColor: '#f97316', borderRadius: 4 },
+                                    { label: 'Industrial Visits', data: ivData, backgroundColor: '#a855f7', borderRadius: 4 }
+                                ]
+                            },
+                            options: {
+                                responsive: true, maintainAspectRatio: false,
+                                plugins: { legend: { position: 'top', labels: { color: '#8b949e', padding: 16 } } },
+                                scales: {
+                                    x: { stacked: false, ticks: { color: '#8b949e' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+                                    y: { stacked: false, beginAtZero: true, ticks: { color: '#8b949e', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.04)' } }
                                 }
-                            });
-                        }
+                            }
+                        });
                     }
 
                     // 8. Org-Type Pie (internships) - Highcharts 3D

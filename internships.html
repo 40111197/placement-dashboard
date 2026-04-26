@@ -7,8 +7,21 @@
         content="default-src 'self' https: data:; script-src 'self' 'unsafe-inline' https://d3js.org https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; img-src 'self' https: data: blob: *; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://raw.githubusercontent.com; frame-ancestors 'none';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Internships - Placement Monitor Dashboard</title>
-    <link rel="stylesheet" href="styles.css?v=410">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=419">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .premium-table td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .premium-table th {
+            white-space: normal;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
 </head>
 
 <body>
@@ -72,21 +85,21 @@
         </div>
 
         <div class="widget-panel">
-            <div class="table-container data-table-container">
-                <table class="premium-table" style="min-width: 1500px;">
+            <div class="table-container data-table-container" style="overflow-x: hidden;">
+                <table class="premium-table" style="width: 100% !important; table-layout: fixed !important; word-wrap: break-word;">
                     <thead>
                         <tr>
                             <th style="width: 4%;">SR.</th>
-                            <th style="width: 6%;">Year</th>
-                            <th style="width: 8%;">Batch</th>
-                            <th style="width: 14%;" class="no-wrap">Enrolment No(s)</th>
-                            <th style="width: 15%;">Student Name(s)</th>
+                            <th style="width: 5%;">Year</th>
+                            <th style="width: 7%;">Batch</th>
+                            <th style="width: 13%;" class="no-wrap">Enrolment No(s)</th>
+                            <th style="width: 14%;">Student Name(s)</th>
                             <th style="width: 11%;">Programme(s)</th>
-                            <th style="width: 13%;">Internship Place</th>
+                            <th style="width: 14%;">Internship Place</th>
                             <th style="width: 8%;">Duration</th>
                             <th style="width: 8%;">City</th>
                             <th style="width: 7%;">Org Type</th>
-                            <th style="width: 6%;">Actions</th>
+                            <th style="width: 9%;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -462,12 +475,12 @@
                         <td style="font-family:monospace;font-size:12px;color:var(--text-white);">${formatStudentCell(grp._students, 'enrollment_number', 'white-space:nowrap;margin-bottom:2px;')}</td>
                         <td style="font-weight:600;">${formatStudentCell(grp._students, 'student_name', 'margin-bottom:2px;')}</td>
                         <td>${[...new Set(grp._students.map(s => (s.programme || '').trim()).filter(Boolean))].map(v => `<span style="display:inline-block;background:rgba(99,179,237,0.15);color:#63b3ed;border-radius:4px;padding:2px 8px;margin:2px 0;font-size:11px;">${esc(v)}</span>`).join('')}</td>
-                        <td>${esc(grp.internship_place || grp.internship_place_01)}</td>
-                        <td>${esc(grp.duration_of_intership || grp.duration_of_intership_01)}</td>
-                        <td>${esc(grp.city_of_intership || grp.city_of_intership_01)}</td>
-                        <td>${esc(grp.type_of_organization)}</td>
+                        <td title="${esc(grp.internship_place || grp.internship_place_01)}">${esc(grp.internship_place || grp.internship_place_01)}</td>
+                        <td title="${esc(grp.duration_of_intership || grp.duration_of_intership_01)}">${esc(grp.duration_of_intership || grp.duration_of_intership_01)}</td>
+                        <td title="${esc(grp.city_of_intership || grp.city_of_intership_01)}">${esc(grp.city_of_intership || grp.city_of_intership_01)}</td>
+                        <td title="${esc(grp.type_of_organization)}">${esc(grp.type_of_organization)}</td>
                         <td>
-                            <div style="display:flex;gap:8px;justify-content:center;">
+                            <div style="display:flex;gap:4px;justify-content:center;">
                                 <button class="action-icon btn-edit-intern" data-ids="${grp._ids.join(',')}" title="Edit"><i class="bi bi-pencil-square"></i></button>
                                 <button class="action-icon btn-del-intern" data-ids="${grp._ids.join(',')}" title="Delete"><i class="bi bi-trash"></i></button>
                             </div>

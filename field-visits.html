@@ -7,7 +7,8 @@
         content="default-src 'self' https: data:; script-src 'self' 'unsafe-inline' https://d3js.org https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; img-src 'self' https: data: blob: *; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://raw.githubusercontent.com; frame-ancestors 'none';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Field Visits - Placement Monitor Dashboard</title>
-    <link rel="stylesheet" href="styles.css?v=412">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=419">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 
@@ -23,7 +24,7 @@
             <a href="students.html" class="sidebar-link"><i class="bi bi-people-fill"></i> <span>Students</span></a>
             <a href="internships.html" class="sidebar-link"><i class="bi bi-person-workspace"></i>
                 <span>Internships</span></a>
-            <a href="field-visits.html" class="sidebar-link"><i class="bi bi-pin-map-fill"></i> <span>Field
+            <a href="field-visits.html" class="sidebar-link active"><i class="bi bi-pin-map-fill"></i> <span>Field
                     Visits</span></a>
             <a href="industrial-visits.html" class="sidebar-link"><i class="bi bi-buildings-fill"></i> <span>Industrial
                     Visits</span></a>
@@ -31,7 +32,7 @@
                 <span>Placements</span></a>
             <a href="external-jobs.html" class="sidebar-link"><i class="bi bi-globe"></i> <span>Job Offers</span></a>
             <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-fill"></i> <span>Reports</span></a>
-            <a href="settings.html" class="sidebar-link active"><i class="bi bi-gear-fill"></i>
+            <a href="settings.html" class="sidebar-link"><i class="bi bi-gear-fill"></i>
                 <span>Settings</span></a>
         </nav>
         <div class="sidebar-footer">
@@ -161,12 +162,13 @@
                 <div class="form-group-row">
                     <div class="form-group">
                         <label class="form-label label-purple">Field Visited / Organization</label>
-                        <input type="text" id="mi-field_visited" class="form-input input-purple" placeholder="e.g. Police Station"
-                            required>
+                        <input type="text" id="mi-field_visited" class="form-input input-purple"
+                            placeholder="e.g. Police Station" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label label-purple">Visit Date</label>
-                        <input type="text" id="mi-visit_date" class="form-input input-purple" placeholder="e.g. 30.10.2023" required>
+                        <input type="text" id="mi-visit_date" class="form-input input-purple"
+                            placeholder="e.g. 30.10.2023" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label label-purple">Batch</label>
@@ -177,7 +179,8 @@
                 <div class="form-group-row">
                     <div class="form-group">
                         <label class="form-label label-purple">Total Staff Count</label>
-                        <input type="number" id="mi-no_of_staff" class="form-input input-purple" placeholder="e.g. 2" min="0">
+                        <input type="number" id="mi-no_of_staff" class="form-input input-purple" placeholder="e.g. 2"
+                            min="0">
                     </div>
                     <div class="form-group">
                         <label class="form-label label-purple">Visit Type</label>
@@ -188,7 +191,8 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label label-purple">City</label>
-                        <input type="text" id="mi-city" class="form-input input-purple" placeholder="e.g. Puducherry" required>
+                        <input type="text" id="mi-city" class="form-input input-purple" placeholder="e.g. Puducherry"
+                            required>
                     </div>
                 </div>
 

@@ -114,7 +114,7 @@ body {
 }
 
 .sidebar-header {
-    padding: 20px 0;
+    padding: 12px 0;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -122,19 +122,19 @@ body {
 }
 
 .sidebar-header img {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     object-fit: contain;
 }
 
 .sidebar-nav {
-    padding: 15px 5px;
+    padding: 8px 5px;
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
-    overflow-y: auto;
+    gap: 4px;
+    overflow-y: hidden;
 }
 .sidebar-nav::-webkit-scrollbar {
     display: none;
@@ -145,21 +145,21 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    width: 64px;
-    height: 64px;
+    gap: 2px;
+    width: 60px;
+    height: 48px;
     color: #94a3b8;
     text-decoration: none;
-    border-radius: 12px;
-    font-size: 9px;
+    border-radius: 8px;
+    font-size: 8.5px;
     font-weight: 500;
     transition: all 0.2s ease;
     text-align: center;
 }
 
 .sidebar-link i {
-    font-size: 22px;
-    margin-bottom: 2px;
+    font-size: 16px;
+    margin-bottom: 0px;
     transition: color 0.18s;
 }
 
@@ -185,7 +185,7 @@ body {
 }
 
 .sidebar-footer {
-    padding: 20px 0;
+    padding: 12px 0;
     display: flex;
     justify-content: center;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
@@ -474,7 +474,7 @@ body {
     background: var(--bg-card) !important;
     color: var(--text-secondary) !important;
     font-size: 13px !important;
-    table-layout: auto !important;
+    table-layout: auto;
     word-break: normal;
     letter-spacing: -0.1px;
     border-radius: 10px;

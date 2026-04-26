@@ -16,8 +16,8 @@
     function populateUserInfo() {
         try {
             const u = JSON.parse(localStorage.getItem('pd_user') || '{}');
-            const nameEl   = document.querySelector('.user-name');
-            const roleEl   = document.querySelector('.user-role');
+            const nameEl   = document.querySelector('.user-profile .name') || document.querySelector('.user-name');
+            const roleEl   = document.querySelector('.user-profile .role') || document.querySelector('.user-role');
             const avatarEl = document.querySelector('.avatar');
 
             if (nameEl   && u.username) nameEl.textContent   = u.username;
