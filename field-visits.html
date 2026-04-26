@@ -506,7 +506,6 @@
                     return parsed.map(p => `
                         <span class="prog-tag">
                             ${esc(p.program)}
-                            ${p.batch ? `<span class="prog-batch-tag">${esc(p.batch)}</span>` : ''}
                             <span class="prog-count">${p.students}</span>
                         </span>`).join('');
                 }
