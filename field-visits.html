@@ -418,20 +418,6 @@
             }
 
             // ─── GLOBAL: ADD PROGRAMME ROW ───────────────────────────────────────
-            const BATCH_OPTIONS = ['2022-2024', '2022-2025', '2023-2025', '2023-2026', '2024-2026', '2024-2027', '2025-2027', '2025-2028'];
-
-            function buildBatchOptions(selected = '') {
-                let opts = `<option value="" disabled ${selected === '' ? 'selected' : ''}>— Select Batch —</option>`;
-                BATCH_OPTIONS.forEach(b => {
-                    const sel = b === selected ? 'selected' : '';
-                    opts += `<option value="${esc(b)}" ${sel}>${esc(b)}</option>`;
-                });
-                if (selected && !BATCH_OPTIONS.includes(selected)) {
-                    opts += `<option value="${esc(selected)}" selected>${esc(selected)}</option>`;
-                }
-                return opts;
-            }
-
             window.addProgramRow = function (prefix, prog = '', count = '', batch = '') {
                 const container = document.getElementById(prefix + '-program-container');
                 const rowId = 'prog-row-' + Date.now() + Math.random().toString(36).substring(7);
@@ -448,9 +434,8 @@
                         </div>
                         <div>
                             <label class="form-label">Batch</label>
-                            <select class="form-select-prog prog-batch-input">
-                                ${buildBatchOptions(batch)}
-                            </select>
+                            <input type="text" class="form-input-count prog-batch-input"
+                                placeholder="e.g. 2024-2026" value="${esc(batch)}" style="width:100%;">
                         </div>
                         <div>
                             <label class="form-label">No. of Students</label>
@@ -463,29 +448,16 @@
                     </button>
                 `;
                 container.appendChild(row);
-                // Force-set values after DOM insertion — must run after appendChild so elements exist
+                // Force-set programme select value after DOM insertion
                 requestAnimationFrame(() => {
                     if (prog) {
                         const progSel = row.querySelector('.prog-name-input');
                         if (progSel) {
                             progSel.value = prog;
-                            // If value didn't stick (custom option), add it
                             if (progSel.value !== prog) {
                                 const opt = document.createElement('option');
                                 opt.value = prog; opt.textContent = prog + ' (custom)'; opt.selected = true;
                                 progSel.appendChild(opt);
-                            }
-                        }
-                    }
-                    if (batch) {
-                        const batchSel = row.querySelector('.prog-batch-input');
-                        if (batchSel) {
-                            batchSel.value = batch;
-                            // If value didn't stick (custom batch), add it
-                            if (batchSel.value !== batch) {
-                                const opt = document.createElement('option');
-                                opt.value = batch; opt.textContent = batch; opt.selected = true;
-                                batchSel.appendChild(opt);
                             }
                         }
                     }
