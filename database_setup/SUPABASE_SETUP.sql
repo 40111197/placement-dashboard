@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS field_visits (
     organization_name VARCHAR(150),
     location VARCHAR(150),
     faculty_coordinator VARCHAR(150),
+    batch VARCHAR(50),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 -- Ensure column exists if table already existed
