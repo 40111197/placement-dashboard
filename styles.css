@@ -129,7 +129,6 @@ body {
 
 .sidebar-nav {
     padding: 8px 5px;
-    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -185,6 +184,7 @@ body {
 }
 
 .sidebar-footer {
+    margin-top: auto;
     padding: 12px 0;
     display: flex;
     justify-content: center;
