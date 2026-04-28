@@ -377,6 +377,7 @@
     <!-- CDN: SheetJS for Excel import/export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- Supabase config (change only this file when moving to a new host) -->
+    <script src="config.js"></script>
     <script src="supabase-client.js?v=303"></script>
     <script src="api.js?v=401"></script>
     <script src="security.js?v=400"></script>
@@ -680,13 +681,13 @@
 
             // ─── GLOBAL: DELETE ───────────────────────────────────────────────────
             window.__fvDelete = async function (idsRaw, btnEl) {
-                console.log('[FV] Delete clicked for ids:', idsRaw);
+                // console.log('[FV] Delete clicked for ids:', idsRaw);
                 if (!confirm('Delete this field visit?')) return;
                 try {
                     if (btnEl) { btnEl.disabled = true; btnEl.innerHTML = '<i class="bi bi-hourglass-split"></i>'; }
-                    const ids = idsRaw.split(',').map(Number).filter(Boolean);
+                    const ids = [...new Set(idsRaw.split(',').map(Number).filter(Boolean))];
                     await Promise.all(ids.map(id => deleteFieldVisit(id)));
-                    console.log('[FV] Delete success for ids:', idsRaw);
+                    // console.log('[FV] Delete success for ids:', idsRaw);
                     load();
                 } catch (err) {
                     console.error('[FV] Delete error:', err);
@@ -697,7 +698,7 @@
 
             // ─── GLOBAL: EDIT (open modal) ────────────────────────────────────────
             window.__fvEdit = function (idsRaw) {
-                console.log('[FV] Edit clicked for ids:', idsRaw);
+                // console.log('[FV] Edit clicked for ids:', idsRaw);
                 const ids = idsRaw.split(',').map(Number).filter(Boolean);
                 const items = fieldVisitsData.filter(item => ids.includes(item.id));
                 if (items.length === 0) { console.warn('[FV] Edit: records not found for ids:', idsRaw); return; }
@@ -939,7 +940,7 @@
                 await loadProgrammes();
                 load();
                 subscribeAllChanges(() => {
-                    console.log('[Realtime] Refreshing field visits list...');
+                    // console.log('[Realtime] Refreshing field visits list...');
                     load();
                 });
             }

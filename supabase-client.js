@@ -12,8 +12,8 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-const SUPABASE_URL      = 'https://rnuuhgiqymukzojiflry.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJudXVoZ2lxeW11a3pvamlmbHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NDEzMDUsImV4cCI6MjA5MDUxNzMwNX0.IeKHzPrc4Hlz5_jjHUfy_crdavE38sI-IRkwuO9ES84';
+const SUPABASE_URL      = window.ENV?.SUPABASE_URL || 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = window.ENV?.SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
 
 // Create the singleton Supabase client.
 // The supabase-js CDN must be loaded BEFORE this file.

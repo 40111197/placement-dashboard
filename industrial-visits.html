@@ -380,6 +380,7 @@
     <script src="auth-guard.js?v=3"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="config.js"></script>
     <script src="supabase-client.js"></script>
     <script src="api.js?v=401"></script>
     <script src="security.js?v=400"></script>
@@ -619,7 +620,9 @@
             // ─── ADD FORM SUBMIT ──────────────────────────────────────────────────
             document.getElementById('industrialForm').onsubmit = async (e) => {
                 e.preventDefault();
+                const errEl = document.getElementById('modalError');
                 const btn = document.getElementById('saveIndustrialBtn');
+                if (errEl) errEl.style.display = 'none';
                 btn.disabled = true; btn.textContent = 'Saving...';
                 try {
                     const progRows = collectProgRows('mi');
@@ -640,7 +643,10 @@
                     document.getElementById('industrialForm').reset();
                     load();
                 } catch (err) {
-                    alert('Error: ' + err.message);
+                    if (errEl) {
+                        errEl.textContent = err.message;
+                        errEl.style.display = 'block';
+                    }
                 } finally {
                     btn.disabled = false; btn.textContent = 'Save Industrial Visit';
                 }
@@ -650,7 +656,9 @@
             document.getElementById('editIndustrialVisitForm').onsubmit = async (e) => {
                 e.preventDefault();
                 const id = document.getElementById('ei-id').value;
+                const errEl = document.getElementById('editModalError');
                 const btn = document.getElementById('editIndustrialVisitSubmitBtn');
+                if (errEl) errEl.style.display = 'none';
                 btn.disabled = true; btn.textContent = 'Saving...';
                 try {
                     const progRows = collectProgRows('ei');
@@ -670,7 +678,10 @@
                     document.getElementById('editIndustrialVisitModal').style.display = 'none';
                     load();
                 } catch (err) {
-                    alert('Error: ' + err.message);
+                    if (errEl) {
+                        errEl.textContent = err.message;
+                        errEl.style.display = 'block';
+                    }
                 } finally {
                     btn.disabled = false; btn.textContent = 'Save Changes';
                 }
@@ -696,7 +707,7 @@
             function initIndustrialPage() {
                 load();
                 subscribeAllChanges(() => {
-                    console.log('[Realtime] Refreshing industrial visits...');
+                    // console.log('[Realtime] Refreshing industrial visits...');
                     load();
                 });
             }

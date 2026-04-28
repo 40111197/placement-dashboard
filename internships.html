@@ -379,6 +379,7 @@
     <!-- CDN: SheetJS for Excel import/export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- Supabase config (change only this file when moving to a new host) -->
+    <script src="config.js"></script>
     <script src="supabase-client.js"></script>
     <script src="api.js?v=500"></script>
     <script src="security.js?v=400"></script>
@@ -530,7 +531,7 @@
                 tbody.querySelectorAll('.btn-del-intern').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         const targetBtn = e.target.closest('.btn-del-intern');
-                        const ids = targetBtn.dataset.ids.split(',');
+                        const ids = [...new Set(targetBtn.dataset.ids.split(','))].filter(Boolean);
                         const count = ids.length;
                         if (!confirm(`Delete this internship group (${count} student record${count > 1 ? 's' : ''})?`)) return;
                         try {
@@ -646,10 +647,10 @@
                         type_of_organization: document.getElementById('mi-org-type').value || ''
                     };
 
-                    const payloads = students.map(st => ({
-                        ...basePayload,
-                        ...st
-                    }));
+                    const payloads = students.map(st => {
+                        const { existingId, ...rest } = st;
+                        return { ...basePayload, ...rest };
+                    });
 
                     await createInternship(payloads);
 
@@ -771,7 +772,7 @@
             function initInternshipsPage() {
                 load();
                 subscribeAllChanges(() => {
-                    console.log('[Realtime] Refreshing internship list...');
+                    // console.log('[Realtime] Refreshing internship list...');
                     load();
                 });
             }

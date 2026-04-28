@@ -28,12 +28,12 @@ function subscribeAllChanges(callback) {
     }
     const channel = _sb.channel('pd-realtime-updates')
         .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
-            console.log(`[Realtime] ${payload.eventType} on ${payload.table}`);
+            // console.log(`[Realtime] ${payload.eventType} on ${payload.table}`);
             callback(payload);
         })
         .subscribe((status) => {
             if (status === 'SUBSCRIBED') {
-                console.log('[Realtime] Subscribed to live database changes.');
+                // console.log('[Realtime] Subscribed to live database changes.');
             }
         });
     return channel;
@@ -131,9 +131,10 @@ async function updateStudent(id, payload) {
 }
 
 async function deleteStudent(id) {
-    const { error } = await _sb.from('students').delete().eq('enrollment_number', id);
-    sbCheck(error, 'deleteStudent');
-    return { success: true };
+    const { error, count } = await _sb.from('students').delete({ count: 'exact' }).eq('enrollment_number', id);
+    if (error) throw new Error(`[deleteStudent] ${error.message}`);
+    if (count === 0) throw new Error('Delete blocked or record not found.');
+    return { success: true, deleted: count };
 }
 
 async function importStudents(fileOrFormData) {
@@ -223,9 +224,10 @@ async function updatePlacement(id, payload) {
 }
 
 async function deletePlacement(id) {
-    const { error } = await _sb.from('placements').delete().eq('id', parseInt(id, 10));
-    sbCheck(error, 'deletePlacement');
-    return { success: true };
+    const { error, count } = await _sb.from('placements').delete({ count: 'exact' }).eq('id', parseInt(id, 10));
+    if (error) throw new Error(`[deletePlacement] ${error.message}`);
+    if (count === 0) throw new Error('Delete blocked or record not found.');
+    return { success: true, deleted: count };
 }
 
 /**
@@ -391,9 +393,10 @@ async function updateInternship(id, payload) {
 }
 
 async function deleteInternship(id) {
-    const { error } = await _sb.from('internships').delete().eq('id', parseInt(id, 10));
-    sbCheck(error, 'deleteInternship');
-    return { success: true };
+    const { error, count } = await _sb.from('internships').delete({ count: 'exact' }).eq('id', parseInt(id, 10));
+    if (error) throw new Error(`[deleteInternship] ${error.message}`);
+    if (count === 0) throw new Error('Delete blocked or record not found.');
+    return { success: true, deleted: count };
 }
 
 async function importInternships(fileOrFormData) {
@@ -438,11 +441,9 @@ async function updateFieldVisit(id, payload) {
 async function deleteFieldVisit(id) {
     const numericId = parseInt(id, 10);
     if (isNaN(numericId)) throw new Error(`Invalid id for deleteFieldVisit: "${id}"`);
-    console.log('[API] deleteFieldVisit called with id:', numericId);
     const { error, count } = await _sb.from('field_visits').delete({ count: 'exact' }).eq('id', numericId);
-    console.log('[API] deleteFieldVisit result - error:', error, 'count:', count);
-    if (error) throw new Error(`[deleteFieldVisit] ${error.message} (code: ${error.code})`);
-    if (count === 0) throw new Error('Delete blocked — check that RLS policy "Allow all for anon - field_visits" exists in Supabase.');
+    if (error) throw new Error(`[deleteFieldVisit] ${error.message}`);
+    if (count === 0) throw new Error('Delete blocked or record not found.');
     return { success: true, deleted: count };
 }
 
@@ -481,9 +482,10 @@ async function updateIndustrialVisit(id, payload) {
 }
 
 async function deleteIndustrialVisit(id) {
-    const { error } = await _sb.from('industrial_visits').delete().eq('id', parseInt(id, 10));
-    sbCheck(error, 'deleteIndustrialVisit');
-    return { success: true };
+    const { error, count } = await _sb.from('industrial_visits').delete({ count: 'exact' }).eq('id', parseInt(id, 10));
+    if (error) throw new Error(`[deleteIndustrialVisit] ${error.message}`);
+    if (count === 0) throw new Error('Delete blocked or record not found.');
+    return { success: true, deleted: count };
 }
 
 async function importIndustrialVisits(fileOrFormData) {

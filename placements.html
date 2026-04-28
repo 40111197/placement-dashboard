@@ -152,7 +152,8 @@
                 <h2>Add New Placement</h2>
                 <button class="close-modal" id="closePlacementModal">&times;</button>
             </div>
-            <form class="modal-form" id="addPlacementForm">
+            <form id="addPlacementForm">
+                <div id="addModalError" style="color:#f87171;font-size:13px;margin-bottom:10px;display:none;"></div>
                 <div style="margin-bottom: 18px;">
                     <div class="dynamic-section-header">
                         <div class="section-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
@@ -242,8 +243,9 @@
                 <h2>Edit Placement</h2>
                 <button class="close-modal" id="closeEditPlacementModal">&times;</button>
             </div>
-            <form class="modal-form" id="editPlacementForm">
+            <form id="editPlacementForm">
                 <input type="hidden" id="ep-id">
+                <div id="editModalError" style="color:#f87171;font-size:13px;margin-bottom:10px;display:none;"></div>
 
                 <div style="margin-bottom: 18px;">
                     <div class="dynamic-section-header">
@@ -367,6 +369,7 @@
     <!-- CDN: SheetJS for Excel import/export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- Supabase config (change only this file when moving to a new host) -->
+    <script src="config.js"></script>
     <script src="supabase-client.js"></script>
     <script src="api.js?v=400"></script>
     <script src="security.js?v=400"></script>
@@ -482,14 +485,16 @@
 
         document.getElementById('addPlacementForm').addEventListener('submit', async e => {
             e.preventDefault();
+            const errEl = document.getElementById('addModalError');
             const btn = document.getElementById('addPlacementSubmitBtn');
+            if (errEl) errEl.style.display = 'none';
             btn.disabled = true; btn.textContent = 'Adding…';
             try {
                 await createPlacement({
-                    enrollment_number: document.getElementById('mp-enrollment').value,
+                    student_name: document.getElementById('mp-name').value.trim(),
+                    enrollment_number: document.getElementById('mp-enrollment').value.trim(),
                     programme: document.getElementById('mp-programme').value,
                     batch: document.getElementById('mp-batch').value,
-                    name: document.getElementById('mp-name').value,
                     role: document.getElementById('mp-role').value || '',
                     company: document.getElementById('mp-company').value,
                     city: document.getElementById('mp-city').value || '',
@@ -499,7 +504,10 @@
                 document.getElementById('addPlacementForm').reset();
                 loadPlacements();
             } catch (err) {
-                alert(err.message);
+                if (errEl) {
+                    errEl.textContent = err.message;
+                    errEl.style.display = 'block';
+                }
             } finally { btn.disabled = false; btn.textContent = 'Add Placement'; }
         });
 
@@ -532,14 +540,16 @@
         document.getElementById('editPlacementForm').addEventListener('submit', async e => {
             e.preventDefault();
             const id = document.getElementById('ep-id').value;
+            const errEl = document.getElementById('editModalError');
             const btn = document.getElementById('editPlacementSubmitBtn');
+            if (errEl) errEl.style.display = 'none';
             btn.disabled = true; btn.textContent = 'Saving...';
             try {
                 await updatePlacement(id, {
                     enrollment_number: document.getElementById('ep-enrollment').value,
                     programme: document.getElementById('ep-programme').value,
                     batch: document.getElementById('ep-batch').value,
-                    name: document.getElementById('ep-name').value,
+                    student_name: document.getElementById('ep-name').value,
                     role: document.getElementById('ep-role').value || '',
                     company: document.getElementById('ep-company').value,
                     city: document.getElementById('ep-city').value || '',
@@ -548,7 +558,10 @@
                 document.getElementById('editPlacementModal').style.display = 'none';
                 loadPlacements();
             } catch (err) {
-                alert('Update failed: ' + err.message);
+                if (errEl) {
+                    errEl.textContent = 'Update failed: ' + err.message;
+                    errEl.style.display = 'block';
+                }
             } finally { btn.disabled = false; btn.textContent = 'Save Changes'; }
         });
 
@@ -605,7 +618,7 @@
             }).catch(e => console.warn('Could not load dropdowns:', e));
 
             subscribeAllChanges(() => {
-                console.log('[Realtime] Refreshing placements...');
+                // console.log('[Realtime] Refreshing placements...');
                 loadPlacements();
             });
         }
