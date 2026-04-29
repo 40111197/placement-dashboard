@@ -248,83 +248,78 @@ async function deletePlacement(id) {
 async function getAcademicYearPlacementRate() {
     try {
         const now   = new Date();
-        const month = now.getMonth() + 1; // 1-12
+        const month = now.getMonth() + 1;
         const year  = now.getFullYear();
 
-        // Determine the target academic year start/end
-        let startYear, endYear;
-        if (month < 9) {
-            // Jan–Aug: previous academic year (passed out June of last year)
-            startYear = year - 2;
-            endYear   = year - 1;
-        } else {
-            // Sep–Dec: batch that just passed out in June of current year
-            startYear = year - 1;
-            endYear   = year;
-        }
+        // 1. Fetch all required data once for efficiency
+        const { data: students, error: sErr } = await _sb.from('students').select('enrollment_number, batch, admitted_year, opted_for_placement');
+        if (sErr) throw sErr;
+        const { data: placementsRaw, error: pErr } = await _sb.from('placements').select('enrollment_number, role');
+        if (pErr) throw pErr;
 
-        const shortEnd   = String(endYear).slice(-2);         // "25"
-        const batchLabel = `${startYear}-${shortEnd}`;        // "2024-25"
-
-        // ── Fetch all students for efficiency ──────────────────────────────
-        const { data: students, error: sErr } = await _sb
-            .from('students')
-            .select('enrollment_number, batch, admitted_year, opted_for_placement');
-        if (sErr) { console.warn('[api] getAcademicYearPlacementRate - students fetch:', sErr); return null; }
-
-        // Match students whose batch belongs to the target academic year.
-        // Accepts formats: "2024-25", "24-25", "2025", "2024", "25", etc.
-        const targetStudents = (students || []).filter(s => {
-            const b = String(s.batch || s.admitted_year || '').trim();
-            if (!b) return false;
-            const bLow = b.toLowerCase();
-            // Robust matching:
-            // 1. Exact match with label (e.g. "2024-25")
-            if (bLow === batchLabel.toLowerCase()) return true;
-            // 2. Exact match with short label (e.g. "24-25")
-            if (bLow === `${String(startYear).slice(-2)}-${shortEnd}`) return true;
-            // 3. Match with full graduation year (e.g. "2025")
-            if (bLow.includes(String(endYear))) return true;
-            // 4. Match with full start year followed by hyphen (e.g. "2024-")
-            if (bLow.startsWith(String(startYear) + '-')) return true;
-            // 5. Match with short start year followed by hyphen (e.g. "24-")
-            if (bLow.startsWith(String(startYear).slice(-2) + '-')) return true;
-            
-            return false;
-        });
-
-        // Filter by opted_for_placement = Yes
-        const optedStudents = targetStudents.filter(s => {
-            const v = String(s.opted_for_placement || '').toLowerCase().trim();
-            return v === 'yes' || v === '1' || v === 'true';
-        });
-
-        if (!optedStudents.length) {
-            return { rate: 0, placed: 0, opted: 0, batchLabel };
-        }
-
-        // ── Fetch all placements ─────────────────
-        const { data: placementsRaw, error: pErr } = await _sb
-            .from('placements')
-            .select('enrollment_number, role, remarks');
-        if (pErr) { console.warn('[api] getAcademicYearPlacementRate - placements fetch:', pErr); return null; }
-
-        const placements = (placementsRaw || []).filter(p => {
+        const validPlacements = (placementsRaw || []).filter(p => {
             const role = String(p.role || '').toLowerCase().trim();
             const remarks = String(p.remarks || '').toLowerCase().trim();
             return role !== 'awaiting for offer letter' && remarks !== 'awaiting for offer letter';
         });
+        const placedSet = new Set(validPlacements.map(p => String(p.enrollment_number).trim()));
 
-        const placedSet = new Set(
-            (placements || []).map(p => String(p.enrollment_number).trim())
-        );
+        // 2. Identify candidate academic years to check (Current and Previous 2)
+        let candidates = [];
+        let currStart = (month >= 7) ? year : year - 1;
+        candidates.push({ start: currStart, end: currStart + 1 });
+        candidates.push({ start: currStart - 1, end: currStart });
+        candidates.push({ start: currStart - 2, end: currStart - 1 });
 
-        const placedCount = optedStudents.filter(
-            s => placedSet.has(String(s.enrollment_number).trim())
-        ).length;
+        let bestResult = null;
 
-        const rate = Math.round((placedCount / optedStudents.length) * 100);
-        return { rate, placed: placedCount, opted: optedStudents.length, batchLabel };
+        for (const cand of candidates) {
+            const batchLabel = `${cand.start}-${String(cand.end).slice(-2)}`;
+            
+            const targetStudents = (students || []).filter(s => {
+                const b = String(s.batch || s.admitted_year || '').trim();
+                if (!b) return false;
+                const bLow = b.toLowerCase();
+
+                // Primary: parse "YYYY-YYYY" or "YYYY-YY" and match by START year
+                // e.g. "2024-2025" or "2024-25" → startYear = 2024
+                const parts = b.split('-');
+                if (parts.length === 2) {
+                    const bStart = parseInt(parts[0]);
+                    if (!isNaN(bStart) && bStart === cand.start) return true;
+                }
+
+                // Secondary: single year field (admitted_year) matches start year
+                const singleYear = parseInt(b);
+                if (!isNaN(singleYear) && parts.length === 1 && singleYear === cand.start) return true;
+
+                // Tertiary: exact full label match (e.g. "2024-25" or "24-25")
+                if (bLow === `${cand.start}-${String(cand.end).slice(-2)}`) return true;
+                if (bLow === `${String(cand.start).slice(-2)}-${String(cand.end).slice(-2)}`) return true;
+
+                return false;
+            });
+
+            const opted = targetStudents.filter(s => {
+                const v = String(s.opted_for_placement || '').toLowerCase().trim();
+                return v === 'yes' || v === '1' || v === 'true';
+            });
+
+            if (opted.length > 0) {
+                const placedCount = opted.filter(s => placedSet.has(String(s.enrollment_number).trim())).length;
+                const rate = Math.round((placedCount / opted.length) * 100);
+                
+                const result = { rate, placed: placedCount, opted: opted.length, batchLabel };
+                
+                // If we found ANY placements, this is our best result (latest batch with data)
+                if (placedCount > 0) return result;
+                
+                // Otherwise, save it as a fallback in case we find nothing better
+                if (!bestResult) bestResult = result;
+            }
+        }
+
+        return bestResult || { rate: 0, placed: 0, opted: 0, batchLabel: 'N/A' };
 
     } catch (err) {
         console.error('[api] getAcademicYearPlacementRate error:', err);
@@ -556,10 +551,13 @@ async function getStats(programme = '') {
         final_total_students = uniqueIds.size;
     }
 
+    const acRate = await getAcademicYearPlacementRate();
+
     return {
         total_students: final_total_students,
         placed_students,
-        placement_rate: final_total_students ? Math.round((placed_students / final_total_students) * 100) : 0,
+        placement_rate: acRate ? acRate.rate : 0,
+        placement_batch: acRate ? acRate.batchLabel : 'N/A',
         total_companies: getValue(2),
         total_internships: getValue(3),
         total_field_visits: getValue(4),

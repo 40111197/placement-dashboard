@@ -132,15 +132,17 @@
                 </div>
                 <div>
                     <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Contact</h3>
-                    <p style="font-size: 12px; color: var(--text-muted);">Email: campusdirector@rru.ac.in</p>
-                    <p style="font-size: 12px; color: var(--text-muted);">Phone: +91 79 XXXXXXXX</p>
+                    <p style="font-size: 12px; color: var(--text-muted);">Email: ro1.py@rru.ac.in</p>
+                    <p style="font-size: 12px; color: var(--text-muted);">Phone: 7305522199</p>
                 </div>
                 <div>
                     <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Follow</h3>
-                    <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
+                    <p style="font-size: 12px; color: var(--text-muted);"><a
+                            href="https://www.instagram.com/rru.puducherrycampus/" target="_blank"
                             style="color: inherit; text-decoration: none;">Instagram</a></p>
-                    <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
-                            style="color: inherit; text-decoration: none;">LinkedIn</a></p>
+                    <p style="font-size: 12px; color: var(--text-muted);"><a
+                            href="https://www.linkedin.com/company/rashtriya-raksha-university-puducherry-campus/posts/?feedView=all"
+                            target="_blank" style="color: inherit; text-decoration: none;">LinkedIn</a></p>
                 </div>
             </div>
         </footer>
@@ -173,19 +175,20 @@
                 <div class="form-group-row">
                     <div class="form-group">
                         <label class="form-label label-purple">Student Name</label>
-                        <input type="text" id="ms-name" class="form-input input-purple" placeholder="e.g. Arun Kumar" required>
+                        <input type="text" id="ms-name" class="form-input input-purple" placeholder="e.g. Arun Kumar"
+                            required>
                     </div>
                     <div class="form-group">
                         <label class="form-label label-purple">Enrollment Number</label>
-                        <input type="text" id="ms-enrollment" class="form-input input-purple" placeholder="e.g. 240051101841001"
-                            required>
+                        <input type="text" id="ms-enrollment" class="form-input input-purple"
+                            placeholder="e.g. 240051101841001" required>
                     </div>
                 </div>
                 <div class="form-group-row">
                     <div class="form-group">
                         <label class="form-label label-purple">Student Email ID</label>
-                        <input type="email" id="ms-student-email" class="form-input input-purple" placeholder="student@rru.ac.in"
-                            required>
+                        <input type="email" id="ms-student-email" class="form-input input-purple"
+                            placeholder="student@rru.ac.in" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label label-purple">Mobile Number</label>
@@ -195,7 +198,8 @@
                 <div class="form-group-row">
                     <div class="form-group">
                         <label class="form-label label-purple">Personal Email ID</label>
-                        <input type="email" id="ms-personal-email" class="form-input input-purple" placeholder="personal@gmail.com">
+                        <input type="email" id="ms-personal-email" class="form-input input-purple"
+                            placeholder="personal@gmail.com">
                     </div>
                 </div>
 
@@ -218,7 +222,8 @@
                         <label class="form-label label-blue">Programme</label>
                         <select id="ms-programme" class="form-select input-blue">
                             <option value="">— Select Programme —</option>
-                            <option value="BCPA">BCPA</option>
+                            <option value="BACPA">BACPA</option>
+                            <option value="BCPS">BCPS</option>
                             <option value="MCRM">MCRM</option>
                             <option value="PGDSCIM">PGDSCIM</option>
                             <option value="PGDCSDF">PGDCSDF</option>
@@ -252,13 +257,6 @@
                     <div class="form-group">
                         <label class="form-label label-green">Opted for Placement?</label>
                         <select id="ms-opted" class="form-select input-green">
-                            <option value="No">No</option>
-                            <option value="Yes">Yes</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label label-green">Higher Education?</label>
-                        <select id="ms-higher-ed" class="form-select input-green">
                             <option value="No">No</option>
                             <option value="Yes">Yes</option>
                         </select>
@@ -346,7 +344,8 @@
                         <label class="form-label label-blue">Programme</label>
                         <select id="es-programme" class="form-select input-blue">
                             <option value="">— Select Programme —</option>
-                            <option value="BCPA">BCPA</option>
+                            <option value="BACPA">BACPA</option>
+                            <option value="BCPS">BCPS</option>
                             <option value="MCRM">MCRM</option>
                             <option value="PGDSCIM">PGDSCIM</option>
                             <option value="PGDCSDF">PGDCSDF</option>
@@ -525,7 +524,7 @@
         function renderStudents(list) {
             if (!list.length) {
                 tbody.innerHTML = '<div style="padding:24px;text-align:center;opacity:0.5;">No students found.</div>';
-                paginationEl.innerHTML = '';
+                if (paginationEl) paginationEl.innerHTML = '';
                 return;
             }
 
@@ -741,8 +740,6 @@
                 fd.append('admitted_year', document.getElementById('ms-year').value.trim());
                 fd.append('personal_email_id', document.getElementById('ms-personal-email').value.trim());
                 fd.append('remark', document.getElementById('ms-remark').value.trim());
-                fd.append('higher_education_plan', document.getElementById('ms-higher-ed').value);
-
                 fd.append('opted_for_placement', document.getElementById('ms-opted').value);
 
                 await createStudent(fd);
@@ -780,8 +777,6 @@
                 fd.append('admitted_year', document.getElementById('es-year').value.trim());
                 fd.append('personal_email_id', document.getElementById('es-personal-email').value.trim());
                 fd.append('remark', document.getElementById('es-remark').value.trim());
-                fd.append('higher_education_plan', document.getElementById('es-higher-ed').value);
-
                 fd.append('opted_for_placement', document.getElementById('es-opted').value);
 
                 await updateStudent(id, fd);

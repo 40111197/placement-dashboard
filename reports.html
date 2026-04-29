@@ -71,8 +71,6 @@
                 <h1>Statistical Reports</h1>
             </div>
             <div class="header-actions-unified">
-
-                <input type="text" class="search-bar-unified" placeholder="Search reports...">
                 <button class="select-unified" onclick="window.print()" style="width: auto; padding: 10px 15px;">
                     <i class="bi bi-printer"></i> Print Report
                 </button>
@@ -265,14 +263,14 @@
                 </div>
                 <div>
                     <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Contact</h3>
-                    <p style="font-size: 12px; color: var(--text-muted);">Email: campusdirector@rru.ac.in</p>
-                    <p style="font-size: 12px; color: var(--text-muted);">Phone: +91 79 XXXXXXXX</p>
+                    <p style="font-size: 12px; color: var(--text-muted);">Email: ro1.py@rru.ac.in</p>
+                    <p style="font-size: 12px; color: var(--text-muted);">Phone: 7305522199</p>
                 </div>
                 <div>
                     <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Follow</h3>
-                    <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
+                    <p style="font-size: 12px; color: var(--text-muted);"><a href="https://www.instagram.com/rru.puducherrycampus/" target="_blank"
                             style="color: inherit; text-decoration: none;">Instagram</a></p>
-                    <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
+                    <p style="font-size: 12px; color: var(--text-muted);"><a href="https://www.linkedin.com/company/rashtriya-raksha-university-puducherry-campus/posts/?feedView=all" target="_blank"
                             style="color: inherit; text-decoration: none;">LinkedIn</a></p>
                 </div>
             </div>
@@ -566,28 +564,75 @@
                     // 1. Placement Status
                     const ctx1 = document.getElementById('placementStatusChart');
                     if (ctx1) {
-                        const placements = getData('placementStatusChart', 'placements');
-                        const studentsRaw = getData('placementStatusChart', 'studentsRaw');
+                        const rawStudents = getData('placementStatusChart', 'studentsRaw');
+                        const rawPlacements = getData('placementStatusChart', 'placements');
+
+                        const validPlacements = rawPlacements.filter(p => {
+                            const role = String(p.role || '').toLowerCase().trim();
+                            const remarks = String(p.remarks || '').toLowerCase().trim();
+                            return role !== 'awaiting for offer letter' && remarks !== 'awaiting for offer letter';
+                        });
+                        const placedIds = new Set(validPlacements.map(p => String(p.enrollment_number).trim()));
+
+                        const optedStudents = rawStudents.filter(s => {
+                            const v = String(s.opted_for_placement || '').toLowerCase().trim();
+                            return v === 'yes' || v === '1' || v === 'true';
+                        });
+
+                        const placedCount = optedStudents.filter(s => placedIds.has(String(s.enrollment_number).trim())).length;
+                        const notPlacedCount = Math.max(0, optedStudents.length - placedCount);
+
                         destroy('_statusChart');
+                        
+                        // Global Chart Defaults
+                        Chart.defaults.color = '#cbd5e1';
+                        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+
+                        // Centralized Programme Normalization and Colors
+                        const COLORS_MAP = {
+                            'BCPS': '#3b82f6',
+                            'PGDCSDF': '#10b981',
+                            'BACPA': '#f59e0b',
+                            'MCRM': '#ef4444',
+                            'PGDSCIM': '#8b5cf6'
+                        };
+                        const fixedProgs = ['BCPS', 'PGDCSDF', 'BACPA', 'MCRM', 'PGDSCIM'];
+                        const normalizeProg = (p) => {
+                            if (!p) return 'Other';
+                            const s = String(p).toUpperCase();
+                            if (s.includes('BCPS')) return 'BCPS';
+                            if (s.includes('PGDCSDF')) return 'PGDCSDF';
+                            if (s.includes('BACPA')) return 'BACPA';
+                            if (s.includes('MCRM') || s.includes('MCRIM')) return 'MCRM';
+                            if (s.includes('PGDSCIM')) return 'PGDSCIM';
+                            return p;
+                        };
+                        
                         window._statusChart = new Chart(ctx1, {
                             type: 'doughnut',
                             data: {
-                                labels: ['Placed', 'Not Placed'],
+                                labels: ['Placed', 'Not Placed (Opted)'],
                                 datasets: [{
-                                    data: [placements.length, Math.max(0, studentsRaw.length - placements.length)],
+                                    data: [placedCount, notPlacedCount],
                                     backgroundColor: ['#22c55e', '#ef4444'], borderWidth: 0
                                 }]
                             },
-                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#aaa' } } } }
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1' } } } }
                         });
                     }
 
                     // 2. Programme-wise Placement
                     const ctx2 = document.getElementById('deptPlacementChart');
                     if (ctx2) {
-                        const placements = getData('deptPlacementChart', 'placements');
+                        const rawPlacements = getData('deptPlacementChart', 'placements');
+                        const validPlacements = rawPlacements.filter(p => {
+                            const role = String(p.role || '').toLowerCase().trim();
+                            const remarks = String(p.remarks || '').toLowerCase().trim();
+                            return role !== 'awaiting for offer letter' && remarks !== 'awaiting for offer letter';
+                        });
+
                         const map = {};
-                        placements.forEach(p => { const d = p.course || p.programme || 'Other'; map[d] = (map[d] || 0) + 1; });
+                        validPlacements.forEach(p => { const d = p.course || p.programme || 'Other'; map[d] = (map[d] || 0) + 1; });
                         destroy('_deptChart');
                         window._deptChart = new Chart(ctx2, {
                             type: 'bar',
@@ -595,7 +640,7 @@
                                 labels: Object.keys(map),
                                 datasets: [{ label: 'Placed', data: Object.values(map), backgroundColor: '#3b82f6' }]
                             },
-                            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#cbd5e1' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.05)' } } } }
                         });
                     }
 
@@ -608,7 +653,8 @@
                         const map = {};
                         const deptStats = {};
                         studentsRaw.forEach(s => {
-                            getProgs(s).forEach(p => {
+                            getProgs(s).forEach(rawP => {
+                                const p = normalizeProg(rawP);
                                 map[p] = (map[p] || 0) + 1;
                                 if (!deptStats[p]) deptStats[p] = { total: 0, placed: 0 };
                                 deptStats[p].total++;
@@ -630,14 +676,18 @@
                                     </div>`).join('');
                         }
 
+                        const chartLabels = fixedProgs.filter(p => map[p] > 0);
+                        const chartData = chartLabels.map(p => map[p]);
+                        const chartColors = chartLabels.map(p => COLORS_MAP[p] || '#94a3b8');
+
                         destroy('_spChart');
                         window._spChart = new Chart(ctx3, {
                             type: 'pie',
                             data: {
-                                labels: Object.keys(map),
-                                datasets: [{ data: Object.values(map), backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'] }]
+                                labels: chartLabels,
+                                datasets: [{ data: chartData, backgroundColor: chartColors }]
                             },
-                            options: { responsive: true, maintainAspectRatio: false }
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { color: '#cbd5e1' } } } }
                         });
                     }
 
@@ -647,7 +697,8 @@
                         const internships = getData('internshipProgrammeChart', 'internships');
                         const map = {};
                         internships.forEach(i => {
-                            getProgs(i).forEach(p => {
+                            getProgs(i).forEach(rawP => {
+                                const p = normalizeProg(rawP);
                                 map[p] = (map[p] || 0) + 1;
                             });
                         });
@@ -669,17 +720,21 @@
                             ctx4.style.display = '';
                             const old = ctx4.parentElement.querySelector('.no-data-msg');
                             if (old) old.remove();
+                            const chartLabels = fixedProgs.filter(p => map[p] > 0);
+                            const chartData = chartLabels.map(p => map[p]);
+                            const chartColors = chartLabels.map(p => COLORS_MAP[p] || '#94a3b8');
+
                             destroy('_ipChart');
                             window._ipChart = new Chart(ctx4, {
                                 type: 'pie',
                                 data: {
-                                    labels,
-                                    datasets: [{ data: values, backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'] }]
+                                    labels: chartLabels,
+                                    datasets: [{ data: chartData, backgroundColor: chartColors }]
                                 },
                                 options: {
                                     responsive: true,
                                     maintainAspectRatio: false,
-                                    plugins: { legend: { position: 'bottom', labels: { color: '#8b949e', padding: 12, font: { size: 11 } } } }
+                                    plugins: { legend: { position: 'top', labels: { color: '#cbd5e1', padding: 12, font: { size: 11 } } } }
                                 }
                             });
                         }
@@ -702,7 +757,7 @@
                                 labels: Object.keys(mapFV).sort(),
                                 datasets: [{ label: 'Field Visits', data: Object.keys(mapFV).sort().map(p => mapFV[p]), backgroundColor: '#f59e0b' }]
                             },
-                            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#cbd5e1' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.05)' } } } }
                         });
                     }
 
@@ -786,7 +841,7 @@
                                         }
                                     ]
                                 },
-                                options: { responsive: true, maintainAspectRatio: false }
+                                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#cbd5e1' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.05)' } } } }
                             });
                         }
                     }
@@ -818,7 +873,7 @@
                                     { label: 'Unplaced', data: labels.length ? labels.map(l => stats[l].nonPlaced) : [0], backgroundColor: '#ef4444' }
                                 ]
                             },
-                            options: { responsive: true, maintainAspectRatio: false }
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#cbd5e1' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.05)' } } } }
                         });
                     }
 
@@ -852,10 +907,10 @@
                             },
                             options: {
                                 responsive: true, maintainAspectRatio: false,
-                                plugins: { legend: { position: 'top', labels: { color: '#8b949e', padding: 16 } } },
+                                plugins: { legend: { position: 'top', labels: { color: '#cbd5e1', padding: 16 } } },
                                 scales: {
-                                    x: { stacked: false, ticks: { color: '#8b949e' }, grid: { color: 'rgba(255,255,255,0.04)' } },
-                                    y: { stacked: false, beginAtZero: true, ticks: { color: '#8b949e', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.04)' } }
+                                    x: { stacked: false, ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+                                    y: { stacked: false, beginAtZero: true, ticks: { color: '#cbd5e1', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.04)' } }
                                 }
                             }
                         });

@@ -70,11 +70,11 @@
                 </div>
                 <div class="header-actions-unified">
                     <div style="position: relative;">
-                        <input type="text" placeholder="Search for anything..." class="search-bar-unified">
                     </div>
                     <select id="dashboardProgrammeFilter" class="select-unified">
                         <option value="">All Programmes</option>
-                        <option value="BCPA">BCPA</option>
+                        <option value="BACPA">BACPA</option>
+                        <option value="BCPS">BCPS</option>
                         <option value="MCRM">MCRM</option>
                         <option value="PGDSCIM">PGDSCIM</option>
                         <option value="PGDCSDF">PGDCSDF</option>
@@ -93,6 +93,7 @@
                             style="color: white;"></i></div>
                     <div class="stat-label">Placed Students</div>
                     <div class="stat-value" id="stat-placed">-</div>
+                    <div id="stat-placed-pct" style="font-size: 10px; opacity: 0.7; margin-top: 2px;">Rate: -%</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon" style="background: var(--accent-blue);"><i class="bi bi-clipboard-pulse"
@@ -184,14 +185,14 @@
                     </div>
                     <div>
                         <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Contact</h3>
-                        <p style="font-size: 12px; color: var(--text-muted);">Email: campusdirector@rru.ac.in</p>
-                        <p style="font-size: 12px; color: var(--text-muted);">Phone: +91 79 XXXXXXXX</p>
+                        <p style="font-size: 12px; color: var(--text-muted);">Email: ro1.py@rru.ac.in</p>
+                        <p style="font-size: 12px; color: var(--text-muted);">Phone: 7305522199</p>
                     </div>
                     <div>
                         <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Follow</h3>
-                        <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
+                        <p style="font-size: 12px; color: var(--text-muted);"><a href="https://www.instagram.com/rru.puducherrycampus/" target="_blank"
                                 style="color: inherit; text-decoration: none;">Instagram</a></p>
-                        <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
+                        <p style="font-size: 12px; color: var(--text-muted);"><a href="https://www.linkedin.com/company/rashtriya-raksha-university-puducherry-campus/posts/?feedView=all" target="_blank"
                                 style="color: inherit; text-decoration: none;">LinkedIn</a></p>
                     </div>
                 </div>
@@ -316,6 +317,9 @@
                     }
                     if (document.getElementById('stat-total')) document.getElementById('stat-total').textContent = totalStudents || '0';
                     if (document.getElementById('stat-placed')) document.getElementById('stat-placed').textContent = stats.placed_students || '0';
+                    if (document.getElementById('stat-placed-pct')) {
+                        document.getElementById('stat-placed-pct').textContent = `Rate: ${stats.placement_rate}% (${stats.placement_batch})`;
+                    }
                     
                     // Group internships to match the unique count
                     const groupedInternships = new Set();
@@ -393,7 +397,12 @@
                         const filteredLabels = filteredIndices.map(i => trend.labels[i]);
                         const filteredData = filteredIndices.map(i => trend.data[i]);
                         if (window._mainChart) window._mainChart.destroy();
-                        window._mainChart = new Chart(ctx, {
+                        window._mainChart = 
+                        // Global Chart Defaults
+                        Chart.defaults.color = '#cbd5e1';
+                        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+                        
+                        new Chart(ctx, {
                             type: 'bar',
                             data: {
                                 labels: filteredLabels,
@@ -403,8 +412,8 @@
                                 responsive: true, maintainAspectRatio: false,
                                 plugins: { legend: { display: false } },
                                 scales: {
-                                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false }, ticks: { color: '#8b949e' } },
-                                    x: { grid: { display: false }, border: { display: false }, ticks: { color: '#8b949e' } }
+                                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false }, ticks: { color: '#cbd5e1' } },
+                                    x: { grid: { display: false }, border: { display: false }, ticks: { color: '#cbd5e1' } }
                                 }
                             }
                         });
@@ -428,7 +437,7 @@
                             },
                             options: {
                                 responsive: true, maintainAspectRatio: false,
-                                plugins: { legend: { position: 'bottom', labels: { color: '#8b949e', padding: 20, font: { size: 10 } } } }
+                                plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1', padding: 20, font: { size: 10 } } } }
                             }
                         });
                     }
@@ -471,7 +480,7 @@
                             // National Boundary (Outer)
                             L.geoJSON(geo, {
                                 style: {
-                                    color: '#ffffff',
+                                    color: '#cbd5e1',
                                     weight: 1.8,
                                     opacity: 0.6,
                                     fillColor: 'transparent'
@@ -523,8 +532,8 @@
                     const seenLocations = new Set();
 
                     const processList = (list, color, type) => {
+                        const groups = {};
                         list.forEach(item => {
-                            // Resilient city lookup
                             let rawCity = (item.city || item.city_of_intership || item.city_of_intership_01 || item.location || '').split(',')[0].trim();
                             if (!rawCity) return;
 
@@ -532,43 +541,55 @@
                             const coords = COORDS_NORM[normalized] || COORDS_NORM[normalized.replace(/\s+/g, '')];
 
                             if (coords) {
-                                const sig = `${normalized}-${type}`;
-                                if (seenLocations.has(sig)) return;
-                                seenLocations.add(sig);
-
-                                let lat = coords[0];
-                                let lng = coords[1];
-
-                                if (type === 'Placement') { lat += 0.02; lng += 0.02; }
-                                else if (type === 'Internship') { lat -= 0.02; lng -= 0.02; }
-                                else if (type === 'Field Visit') { lat += 0.02; lng -= 0.02; }
-                                else { lat -= 0.02; lng += 0.02; }
-
-                                allPoints.push([lat, lng, 0.4]);
-
-                                // Resilient name lookup
-                                let label = item.student_name || item.name || item.name_of_student || item.field_visited || item.organization_name || item.company || 'Record';
-                                let labelTitle = 'Name';
-
-                                if (type === 'Internship') {
-                                    label = item.internship_place_01 || item.internship_place || item.company || 'Record';
-                                    labelTitle = 'Company';
+                                if (!groups[normalized]) {
+                                    groups[normalized] = { rawCity, coords, items: [] };
                                 }
-
-                                L.circleMarker([lat, lng], {
-                                    radius: 5,
-                                    fillColor: color,
-                                    color: '#fff',
-                                    weight: 1,
-                                    fillOpacity: 0.9
-                                }).bindPopup(`
-                                    <div style="font-family: 'Inter', sans-serif;">
-                                        <b style="color:${color}">${type}</b><br>
-                                        <b>${labelTitle}:</b> ${esc(label)}<br>
-                                        <b>City:</b> ${esc(rawCity)}
-                                    </div>
-                                `).addTo(_markers);
+                                groups[normalized].items.push(item);
                             }
+                        });
+
+                        Object.keys(groups).forEach(normalized => {
+                            const group = groups[normalized];
+                            const { rawCity, coords, items } = group;
+
+                            let lat = coords[0];
+                            let lng = coords[1];
+
+                            if (type === 'Placement') { lat += 0.02; lng += 0.02; }
+                            else if (type === 'Internship') { lat -= 0.02; lng -= 0.02; }
+                            else if (type === 'Field Visit') { lat += 0.02; lng -= 0.02; }
+                            else { lat -= 0.02; lng += 0.02; }
+
+                            // Increase heatmap intensity based on number of items
+                            items.forEach(() => allPoints.push([lat, lng, 0.4]));
+
+                            const labels = [...new Set(items.map(item => {
+                                if (type === 'Internship') {
+                                    return item.internship_place_01 || item.internship_place || item.company || 'Record';
+                                }
+                                return item.student_name || item.name || item.name_of_student || item.field_visited || item.organization_name || item.company || 'Record';
+                            }))];
+
+                            const labelTitle = (type === 'Internship') ? 'Companies' : 'Records';
+                            const labelsHtml = labels.map(l => `<div style="margin-bottom:2px">• ${esc(l)}</div>`).join('');
+
+                            L.circleMarker([lat, lng], {
+                                radius: 5,
+                                fillColor: color,
+                                color: '#fff',
+                                weight: 1,
+                                fillOpacity: 0.9
+                            }).bindPopup(`
+                                <div style="font-family: 'Inter', sans-serif; min-width: 140px;">
+                                    <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; font-weight: 600; margin-bottom: 2px;">${type}s (${items.length})</div>
+                                    <div style="font-size: 14px; font-weight: 700; color: ${color}; margin-bottom: 8px;">${esc(rawCity)}</div>
+                                    
+                                    <div style="font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 600; margin-bottom: 4px;">${labelTitle}</div>
+                                    <div style="max-height: 120px; overflow-y: auto; font-size: 12px; color: #f8fafc; line-height: 1.4;">
+                                        ${labelsHtml}
+                                    </div>
+                                </div>
+                            `, { maxWidth: 300 }).addTo(_markers);
                         });
                     };
 
