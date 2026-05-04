@@ -142,7 +142,7 @@
                         <div>STUDENT NAME</div>
                         <div>COMPANY</div>
                         <div>ROLE</div>
-                        <div>YEAR</div>
+                        <div>BATCH</div>
                         <div>SALARY</div>
                     </div>
                     <div id="recentPlacementsBody">
@@ -156,12 +156,12 @@
                 <h3>Recent Internships</h3>
                 <div style="overflow-x: auto;">
                     <div class="recent-table-header"
-                        style="display: grid; grid-template-columns: 60px 2.5fr 2fr 1.5fr 1fr 1fr; padding: 12px 16px; background: var(--bg-hover); border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; color: var(--text-muted); border-radius: 8px 8px 0 0;">
+                        style="display: grid; grid-template-columns: 60px 2fr 2fr 1fr 1fr 1fr; padding: 12px 16px; background: var(--bg-hover); border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; color: var(--text-muted); border-radius: 8px 8px 0 0;">
                         <div>S.NO.</div>
                         <div>STUDENT NAME</div>
-                        <div style="color: var(--accent-blue);">COMPANY</div>
-                        <div style="color: var(--text-muted);">ROLE</div>
-                        <div style="color: var(--accent-green);">SALARY</div>
+                        <div style="color: var(--accent-blue);">INTERNSHIP PLACE</div>
+                        <div>YEAR</div>
+                        <div>BATCH</div>
                         <div>DURATION</div>
                     </div>
                     <div id="recentInternshipsBody">
@@ -347,18 +347,22 @@
                     if (!placements.length) {
                         rpBody.innerHTML = '<div style="padding:40px;text-align:center;opacity:0.5;">No placements found.</div>';
                     } else {
-                        // Sort by most recent created_at first
+                        // Sort by most recent created_at first, fallback to id
                         const recent = [...placements]
-                            .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+                            .sort((a, b) => {
+                                const da = new Date(b.created_at || 0) - new Date(a.created_at || 0);
+                                if (da !== 0) return da;
+                                return (b.id || 0) - (a.id || 0);
+                            })
                             .slice(0, 5);
                         rpBody.innerHTML = recent.map((p, i) => `
                             <div class="table-row" style="display: grid; grid-template-columns: 60px 2fr 1.5fr 1.5fr 1fr 1fr; padding: 12px 16px; border-bottom: 1px solid var(--border-light); align-items: center; font-size: 13px;">
                                 <div style="color: var(--text-muted);">${String(i + 1).padStart(2, '0')}</div>
-                                <div style="font-weight: 600; color: var(--navy);">${esc(p.name || p.student_name || 'Student')}</div>
-                                <div style="color: var(--accent-green);">${esc(p.company || '—')}</div>
-                                <div style="color: var(--text-secondary);">${esc(p.remarks || p.role || '—')}</div>
-                                <div style="color: var(--text-muted); font-size: 11px;">${(p.created_at || '').split('-')[0] || '—'}</div>
-                                <div style="font-weight: 600; color: var(--navy);">${p.salary || p.ctc || p.package || '—'}</div>
+                                <div style="font-weight: 600; color: var(--navy);">${esc(p.name || p.student_name || '—')}</div>
+                                <div style="color: var(--accent-green);">${esc(p.company || p.company_name || '—')}</div>
+                                <div style="color: var(--text-secondary);">${esc(p.role || p.remarks || '—')}</div>
+                                <div style="color: var(--text-muted); font-size: 11px;">${esc(p.batch || (p.created_at || '').split('-')[0] || '—')}</div>
+                                <div style="font-weight: 600; color: var(--accent-green);">${esc(p.salary || p.ctc || p.package || '—')}</div>
                             </div>
                         `).join('');
                     }
@@ -370,18 +374,23 @@
                     if (!internships.length) {
                         riBody.innerHTML = '<div style="padding:40px;text-align:center;opacity:0.5;">No internships found.</div>';
                     } else {
-                        // Sort by most recent ID (latest entry)
+                        // Sort by year desc, then by id desc for most recent entries
                         const recent = [...internships]
-                            .sort((a, b) => b.id - a.id)
+                            .sort((a, b) => {
+                                const ya = parseInt(a.year || 0);
+                                const yb = parseInt(b.year || 0);
+                                if (yb !== ya) return yb - ya;
+                                return (b.id || 0) - (a.id || 0);
+                            })
                             .slice(0, 5);
                         riBody.innerHTML = recent.map((item, i) => `
-                             <div class="table-row" style="display: grid; grid-template-columns: 60px 2.5fr 2fr 1.5fr 1fr 1fr; padding: 12px 16px; border-bottom: 1px solid var(--border-light); align-items: center; font-size: 13px;">
+                             <div class="table-row" style="display: grid; grid-template-columns: 60px 2fr 2fr 1fr 1fr 1fr; padding: 12px 16px; border-bottom: 1px solid var(--border-light); align-items: center; font-size: 13px;">
                                  <div style="color: var(--text-muted);">${String(i + 1).padStart(2, '0')}</div>
-                                 <div style="font-weight: 600; color: var(--navy);">${esc(item.name_of_student || item.student_name || 'Student')}</div>
+                                 <div style="font-weight: 600; color: var(--navy);">${esc(item.name_of_student || item.student_name || '—')}</div>
                                  <div style="color: var(--accent-blue);">${esc(item.internship_place_01 || item.internship_place || '—')}</div>
-                                 <div style="color: var(--text-secondary);">${esc(item.role || 'Intern')}</div>
-                                 <div style="color: var(--accent-green);">${esc(item.salary || '-')}</div>
-                                 <div style="color: var(--text-muted); font-size: 11px;">${esc(item.duration_of_intership_01 || item.duration_of_internship_01 || item.duration || '-')}</div>
+                                 <div style="color: var(--text-muted); font-size: 11px;">${esc(String(item.year || '—'))}</div>
+                                 <div style="color: var(--accent-orange); font-size: 11px;">${esc(item.batch || '—')}</div>
+                                 <div style="color: var(--text-muted); font-size: 11px;">${esc(item.duration_of_intership_01 || item.duration_of_internship_01 || item.duration_of_intership || '—')}</div>
                              </div>
                         `).join('');
                     }
