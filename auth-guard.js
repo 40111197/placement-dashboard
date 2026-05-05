@@ -20,9 +20,9 @@
             const roleEl   = document.querySelector('.user-profile .role') || document.querySelector('.user-role');
             const avatarEl = document.querySelector('.avatar');
 
-            if (nameEl   && u.username) nameEl.textContent   = u.username;
-            if (roleEl   && u.role)     roleEl.textContent   = u.role.charAt(0).toUpperCase() + u.role.slice(1);
-            if (avatarEl && u.username) avatarEl.textContent = u.username.charAt(0).toUpperCase();
+            if (nameEl) nameEl.textContent   = u.username || u.email || 'User';
+            if (roleEl && u.role)     roleEl.textContent   = u.role.charAt(0).toUpperCase() + u.role.slice(1);
+            if (avatarEl) avatarEl.textContent = (u.username || u.email || 'U').charAt(0).toUpperCase();
 
             const profileEl = document.querySelector('.user-profile');
             if (profileEl) {
