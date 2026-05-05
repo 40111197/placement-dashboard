@@ -42,30 +42,19 @@ function subscribeAllChanges(callback) {
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
 
 async function apiSendOtp(email) {
-    const allowedEmails = [
-        '40111197.shiva@gmail.com',
-        'sivarama10092@gmail.com',
-        'hero88375@gmail.com',
-        'shivaramakrishnant94@gmail.com',
-        '25pgdcsdf012@student.rru.ac.in'
-    ];
-
-    if (!allowedEmails.includes(email.toLowerCase().trim())) {
-        throw new Error('Unauthorized email address. You do not have permission to access this dashboard.');
-    }
-
     // 1. Trigger Supabase to send a real OTP to the email
     const { data, error } = await _sb.auth.signInWithOtp({
         email: email,
         options: {
-            // Automatically creates the account for them if it's their first time logging in,
-            // but ONLY because we already validated they are in the allowed list above.
-            shouldCreateUser: true 
+            // Do NOT create users automatically. 
+            // Users MUST be created manually in the Supabase Dashboard.
+            shouldCreateUser: false 
         }
     });
 
     if (error) {
-        throw new Error(error.message || 'Failed to send OTP.');
+        // If signups are disabled and the email is not registered, it will throw an error here.
+        throw new Error(error.message || 'Unauthorized email address or failed to send OTP.');
     }
 
     // 2. Store the email temporarily for the verification step
