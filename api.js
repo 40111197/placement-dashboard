@@ -66,7 +66,7 @@ async function apiVerifyRealOtp(otp) {
     const email = localStorage.getItem('mfa_pending_email');
     if (!email) throw new Error('No pending login session.');
 
-    // 1. Verify the real OTP with Supabase
+    // 1. Verify the real OTP with Supabase Auth
     const { data, error } = await _sb.auth.verifyOtp({
         email: email,
         token: otp,
@@ -81,17 +81,33 @@ async function apiVerifyRealOtp(otp) {
         throw new Error('Verification failed: No session established.');
     }
 
-    // 2. Successfully authenticated! Save the user session.
-    const user = {
-        id: data.user.id,
-        email: data.user.email,
-        role: 'admin' // By default, anyone who can log in is granted access
-    };
+    // 2. Look up the user's profile from the existing `users` table by email
+    const { data: profile, error: profileErr } = await _sb
+        .from('users')
+        .select('id, username, email, mobile, role')
+        .eq('email', email)
+        .single();
+
+    // Build session — fall back gracefully if profile not found
+    const user = profile
+        ? {
+            id: profile.id,
+            username: profile.username,
+            email: profile.email,
+            mobile: profile.mobile,
+            role: profile.role
+          }
+        : {
+            id: data.user.id,
+            username: email.split('@')[0],
+            email: data.user.email,
+            role: 'admin'
+          };
 
     saveUser(user);
     localStorage.setItem('pd_token', data.session.access_token);
     localStorage.removeItem('mfa_pending_email');
-    
+
     return { success: true, user };
 }
 
