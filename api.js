@@ -41,6 +41,39 @@ function subscribeAllChanges(callback) {
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
 
+// SHA-256 helper (browser native)
+async function sha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// ── Username + Password login (for role accounts: CD PY, PI PY, etc.) ─────────
+async function apiLoginWithPassword(username, password) {
+    const hash = await sha256(password);
+
+    // Match by username OR email (case-insensitive username)
+    const { data, error } = await _sb
+        .from('users')
+        .select('id, username, email, mobile, role, password_hash')
+        .or(`username.eq.${username},email.eq.${username}`)
+        .single();
+
+    if (error || !data) throw new Error('Invalid username or password.');
+    if (data.password_hash !== hash) throw new Error('Invalid username or password.');
+
+    const user = {
+        id:       data.id,
+        username: data.username,
+        email:    data.email,
+        mobile:   data.mobile,
+        role:     data.role
+    };
+
+    saveUser(user);
+    localStorage.setItem('pd_token', 'pwd_session_' + Date.now());
+    return { success: true, user };
+}
+
 async function apiSendOtp(email) {
     // 1. Trigger Supabase to send a real OTP to the email
     const { data, error } = await _sb.auth.signInWithOtp({

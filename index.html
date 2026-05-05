@@ -184,22 +184,47 @@
 
         <div class="right">
 
-            <h2>Login</h2>
+            <h2 id="formTitle">Login</h2>
+
+            <!-- ── Mode Toggle ── -->
+            <div style="display:flex; background:#0d1e2e; border-radius:8px; margin-bottom:20px; padding:4px;">
+                <button type="button" id="tabPassword" onclick="switchTab('password')"
+                    style="flex:1; padding:8px; border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; background:#ff8c00; color:#fff; transition:all 0.2s;">
+                    Username &amp; Password
+                </button>
+                <button type="button" id="tabOtp" onclick="switchTab('otp')"
+                    style="flex:1; padding:8px; border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; background:transparent; color:#888; transition:all 0.2s;">
+                    Email OTP
+                </button>
+            </div>
 
             <form id="loginForm">
-
                 <div id="errorMsg" class="error-msg"></div>
 
-                <div class="input-box">
-                    <input type="email" id="email" placeholder="Registered Email Address" required autocomplete="email">
+                <!-- Password login fields -->
+                <div id="passwordFields">
+                    <div class="input-box">
+                        <input type="text" id="username" placeholder="Username (e.g. CD PY)" autocomplete="username">
+                    </div>
+                    <div class="input-box">
+                        <input type="password" id="password" placeholder="Password" autocomplete="current-password">
+                    </div>
+                    <button type="submit" id="loginBtn">Login</button>
+                    <div class="extra" style="margin-top:12px;">
+                        <span style="color:#aaa;font-size:12px;">For role accounts: CD PY, PI PY, II PY, FI PY, IVI PY</span>
+                    </div>
                 </div>
 
-                <button type="submit" id="loginBtn">Send OTP</button>
-
-                <div class="extra">
-                    <span style="color:#aaa;font-size:12px">An OTP will be sent to your email to securely log you in.</span>
+                <!-- OTP login fields -->
+                <div id="otpFields" style="display:none;">
+                    <div class="input-box">
+                        <input type="email" id="email" placeholder="Registered Email Address" autocomplete="email">
+                    </div>
+                    <button type="submit" id="otpBtn">Send OTP</button>
+                    <div class="extra" style="margin-top:12px;">
+                        <span style="color:#aaa;font-size:12px;">A 6-digit OTP will be sent to your inbox.</span>
+                    </div>
                 </div>
-
             </form>
 
         </div>
@@ -210,68 +235,111 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- CDN: SheetJS for Excel import/export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- Supabase config (change this when you move servers) -->
+    <!-- Supabase config -->
     <script src="config.js"></script>
     <script src="supabase-client.js"></script>
-    <!-- Data layer -->
     <script src="security.js"></script>
-    <script src="api.js?v=400"></script>
+    <script src="api.js?v=501"></script>
     <script>
         // If already logged in, redirect to dashboard
         if (localStorage.getItem('pd_user')) {
             window.location.href = 'dashboard.html';
         }
 
+        let currentTab = 'password';
+
+        function switchTab(tab) {
+            currentTab = tab;
+            const isPassword = tab === 'password';
+            document.getElementById('passwordFields').style.display = isPassword ? 'block' : 'none';
+            document.getElementById('otpFields').style.display     = isPassword ? 'none'  : 'block';
+            document.getElementById('formTitle').textContent        = isPassword ? 'Login' : 'Login with OTP';
+            document.getElementById('tabPassword').style.background = isPassword ? '#ff8c00' : 'transparent';
+            document.getElementById('tabPassword').style.color      = isPassword ? '#fff'    : '#888';
+            document.getElementById('tabOtp').style.background      = isPassword ? 'transparent' : '#ff8c00';
+            document.getElementById('tabOtp').style.color           = isPassword ? '#888'    : '#fff';
+            document.getElementById('errorMsg').classList.remove('show');
+        }
+
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const email = document.getElementById('email').value.trim();
             const errorMsg = document.getElementById('errorMsg');
-            const loginBtn = document.getElementById('loginBtn');
-
-            // A07: Rate Limiting Check
-            const lockout = isLoginLockedOut();
-            if (lockout.locked) {
-                const remaining = Math.ceil(lockout.remainingMs / 60000);
-                errorMsg.textContent = `Too many failed attempts. Locked out for ${remaining} more minutes.`;
-                errorMsg.classList.add('show');
-                return;
-            }
-
             errorMsg.classList.remove('show');
-            if (!email) {
-                errorMsg.textContent = 'Please enter your email.';
-                errorMsg.classList.add('show');
-                return;
+
+            // Rate limit check
+            if (typeof isLoginLockedOut === 'function') {
+                const lockout = isLoginLockedOut();
+                if (lockout.locked) {
+                    errorMsg.textContent = `Too many failed attempts. Locked out for ${Math.ceil(lockout.remainingMs / 60000)} more minutes.`;
+                    errorMsg.classList.add('show');
+                    return;
+                }
             }
 
-            loginBtn.disabled = true;
-            loginBtn.textContent = 'Sending OTP…';
+            if (currentTab === 'password') {
+                // ── Username + Password Login ───────────────────
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value;
+                const btn = document.getElementById('loginBtn');
 
-            try {
-                // Call Supabase to send a real OTP to the email
-                await apiSendOtp(email);
-                
-                // Clear attempts on success
-                if (typeof clearLoginAttempts === 'function') clearLoginAttempts();
-
-                // Redirect to MFA verification page to enter the OTP
-                window.location.href = 'mfa.html';
-            } catch (err) {
-                // A07: Record failed attempt
-                if (typeof recordLoginAttempt === 'function') {
-                    const result = recordLoginAttempt();
-                    if (result.locked) {
-                        errorMsg.textContent = 'Too many failed attempts. You have been locked out for 15 minutes.';
-                    } else {
-                        errorMsg.textContent = `${err.message || 'Failed to send OTP.'} (${result.attemptsLeft} attempts remaining)`;
-                    }
-                } else {
-                    errorMsg.textContent = err.message || 'Failed to send OTP. Please try again.';
+                if (!username || !password) {
+                    errorMsg.textContent = 'Please enter your username and password.';
+                    errorMsg.classList.add('show');
+                    return;
                 }
-                
-                errorMsg.classList.add('show');
-                loginBtn.disabled = false;
-                loginBtn.textContent = 'Send OTP';
+
+                btn.disabled = true;
+                btn.textContent = 'Logging in…';
+
+                try {
+                    await apiLoginWithPassword(username, password);
+                    if (typeof clearLoginAttempts === 'function') clearLoginAttempts();
+                    window.location.href = 'dashboard.html';
+                } catch (err) {
+                    if (typeof recordLoginAttempt === 'function') {
+                        const r = recordLoginAttempt();
+                        errorMsg.textContent = r.locked
+                            ? 'Too many failed attempts. Locked out for 15 minutes.'
+                            : `${err.message || 'Login failed.'} (${r.attemptsLeft} attempts left)`;
+                    } else {
+                        errorMsg.textContent = err.message || 'Login failed.';
+                    }
+                    errorMsg.classList.add('show');
+                    btn.disabled = false;
+                    btn.textContent = 'Login';
+                }
+
+            } else {
+                // ── Email OTP Login ─────────────────────────────
+                const email = document.getElementById('email').value.trim();
+                const btn = document.getElementById('otpBtn');
+
+                if (!email) {
+                    errorMsg.textContent = 'Please enter your email address.';
+                    errorMsg.classList.add('show');
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.textContent = 'Sending OTP…';
+
+                try {
+                    await apiSendOtp(email);
+                    if (typeof clearLoginAttempts === 'function') clearLoginAttempts();
+                    window.location.href = 'mfa.html';
+                } catch (err) {
+                    if (typeof recordLoginAttempt === 'function') {
+                        const r = recordLoginAttempt();
+                        errorMsg.textContent = r.locked
+                            ? 'Too many failed attempts. Locked out for 15 minutes.'
+                            : `${err.message || 'Failed to send OTP.'} (${r.attemptsLeft} attempts left)`;
+                    } else {
+                        errorMsg.textContent = err.message || 'Failed to send OTP.';
+                    }
+                    errorMsg.classList.add('show');
+                    btn.disabled = false;
+                    btn.textContent = 'Send OTP';
+                }
             }
         });
     </script>
