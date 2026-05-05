@@ -197,9 +197,7 @@
                 </div>
 
                 <button type="submit" class="mfa-submit-btn" id="verifyBtn">Verify &amp; Login</button>
-                <div style="text-align: center; margin-top: 20px;">
-                    <a href="#" onclick="skipMFA()" id="skipMfaBtn" style="color: #64748b; font-size: 13px; text-decoration: none; opacity: 0.6;">Skip MFA (Demo Mode)</a>
-                </div>
+
                 <div class="extra">
                     <a href="index.html">← Back to Login</a>
                 </div>
@@ -267,18 +265,10 @@
         startCountdown();
 
         // ── Show masked email/mobile hint ─────────────────────────────────────
-        const emailHint  = localStorage.getItem('mfa_email_hint');
-        const mobileHint = localStorage.getItem('mfa_mobile_hint');
-        if (emailHint || mobileHint) {
-            const parts = [];
-            if (emailHint)  parts.push(`📧 ${emailHint}`);
-            if (mobileHint) parts.push(`📱 ${mobileHint}`);
-            otpHint.innerHTML = `OTPs sent to:<br><span>${parts.join(' &nbsp;|&nbsp; ')}</span>`;
-        }
-
-        // ── Check pending MFA session exists ─────────────────────────────────
-        const pending = localStorage.getItem('mfa_pending_user');
-        if (!pending) {
+        const emailHint = localStorage.getItem('mfa_pending_email');
+        if (emailHint) {
+            otpHint.innerHTML = `OTP sent to:<br><span>📧 ${emailHint}</span>`;
+        } else {
             // No pending 2FA session — send back to login
             window.location.href = 'index.html';
         }
@@ -299,7 +289,7 @@
             verifyBtn.textContent = 'Verifying...';
 
             try {
-                await apiVerifyOtp(null, otp);
+                await apiVerifyRealOtp(otp);
                 clearInterval(countdownInterval);
                 window.location.href = 'dashboard.html';
             } catch (err) {

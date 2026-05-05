@@ -40,67 +40,77 @@ function subscribeAllChanges(callback) {
 }
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
-async function sha256(str) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
 
-async function apiLogin(username, password) {
-    const hash = await sha256(password);
-    const { data, error } = await _sb.from('settings').select('*').limit(1).single();
-    if (error) throw new Error('Cannot reach database. Check connection.');
+async function apiSendOtp(email) {
+    const allowedEmails = [
+        '40111197.shiva@gmail.com',
+        'sivarama10092@gmail.com',
+        'hero88375@gmail.com',
+        'shivaramakrishnant94@gmail.com',
+        '25pgdcsdf012@student.rru.ac.in'
+    ];
 
-    if (data.admin_username !== username) throw new Error('Invalid username or password.');
-    if (data.admin_password_hash !== hash) throw new Error('Invalid username or password.');
-
-    const user = {
-        username: data.admin_username,
-        email: data.admin_email,
-        mobile: data.admin_mobile,
-        role: 'admin',
-        twoFaEnabled: data.two_factor_enabled
-    };
-
-    if (data.two_factor_enabled) {
-        // 2FA flow: store pending user and redirect to MFA page
-        localStorage.setItem('mfa_pending_user', JSON.stringify(user));
-        return { requires_2fa: true };
+    if (!allowedEmails.includes(email.toLowerCase().trim())) {
+        throw new Error('Unauthorized email address. You do not have permission to access this dashboard.');
     }
 
-    // No 2FA — save session immediately
+    // 1. Trigger Supabase to send a real OTP to the email
+    const { data, error } = await _sb.auth.signInWithOtp({
+        email: email,
+        options: {
+            // Automatically creates the account for them if it's their first time logging in,
+            // but ONLY because we already validated they are in the allowed list above.
+            shouldCreateUser: true 
+        }
+    });
+
+    if (error) {
+        throw new Error(error.message || 'Failed to send OTP.');
+    }
+
+    // 2. Store the email temporarily for the verification step
+    localStorage.setItem('mfa_pending_email', email);
+    return { success: true };
+}
+
+async function apiVerifyRealOtp(otp) {
+    const email = localStorage.getItem('mfa_pending_email');
+    if (!email) throw new Error('No pending login session.');
+
+    // 1. Verify the real OTP with Supabase
+    const { data, error } = await _sb.auth.verifyOtp({
+        email: email,
+        token: otp,
+        type: 'email'
+    });
+
+    if (error) {
+        throw new Error(error.message || 'Invalid or expired OTP.');
+    }
+
+    if (!data.session) {
+        throw new Error('Verification failed: No session established.');
+    }
+
+    // 2. Successfully authenticated! Save the user session.
+    const user = {
+        id: data.user.id,
+        email: data.user.email,
+        role: 'admin' // By default, anyone who can log in is granted access
+    };
+
     saveUser(user);
-    localStorage.setItem('pd_token', 'supabase_session_' + Date.now());
+    localStorage.setItem('pd_token', data.session.access_token);
+    localStorage.removeItem('mfa_pending_email');
+    
     return { success: true, user };
 }
 
 function apiLogout() {
-    clearSession();
-    window.location.href = 'index.html';
-}
-
-// MFA bypass for demo mode
-async function skipMFA() {
-    const pending = localStorage.getItem('mfa_pending_user');
-    if (!pending) { window.location.href = 'index.html'; return; }
-    const user = JSON.parse(pending);
-    saveUser(user);
-    localStorage.setItem('pd_token', 'supabase_session_' + Date.now());
-    localStorage.removeItem('mfa_pending_user');
-    window.location.href = 'dashboard.html';
-}
-
-async function apiVerifyOtp(userId, otp) {
-    // For demo: accept any 6-digit OTP
-    if (otp && otp.length >= 4) {
-        const pending = localStorage.getItem('mfa_pending_user');
-        if (!pending) throw new Error('No pending login session.');
-        const user = JSON.parse(pending);
-        saveUser(user);
-        localStorage.setItem('pd_token', 'supabase_session_' + Date.now());
-        localStorage.removeItem('mfa_pending_user');
-        return { success: true, user };
-    }
-    throw new Error('Invalid OTP.');
+    _sb.auth.signOut().then(() => {
+        clearSession();
+        window.location.href = 'index.html';
+    });
 }
 
 // ─── HELPER: throw on Supabase error ─────────────────────────────────────────

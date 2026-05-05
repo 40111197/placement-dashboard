@@ -191,17 +191,13 @@
                 <div id="errorMsg" class="error-msg"></div>
 
                 <div class="input-box">
-                    <input type="text" id="username" placeholder="Username or Email" required autocomplete="username">
+                    <input type="email" id="email" placeholder="Registered Email Address" required autocomplete="email">
                 </div>
 
-                <div class="input-box">
-                    <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
-                </div>
-
-                <button type="submit" id="loginBtn">Login</button>
+                <button type="submit" id="loginBtn">Send OTP</button>
 
                 <div class="extra">
-                    <span style="color:#aaa;font-size:12px">Default: admin / Admin@123</span>
+                    <span style="color:#aaa;font-size:12px">An OTP will be sent to your email to securely log you in.</span>
                 </div>
 
             </form>
@@ -228,8 +224,7 @@
 
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
+            const email = document.getElementById('email').value.trim();
             const errorMsg = document.getElementById('errorMsg');
             const loginBtn = document.getElementById('loginBtn');
 
@@ -243,26 +238,24 @@
             }
 
             errorMsg.classList.remove('show');
-            if (!username || !password) {
-                errorMsg.textContent = 'Please enter username and password.';
+            if (!email) {
+                errorMsg.textContent = 'Please enter your email.';
                 errorMsg.classList.add('show');
                 return;
             }
 
             loginBtn.disabled = true;
-            loginBtn.textContent = 'Logging in…';
+            loginBtn.textContent = 'Sending OTP…';
 
             try {
-                const res = await apiLogin(username, password);
+                // Call Supabase to send a real OTP to the email
+                await apiSendOtp(email);
                 
                 // Clear attempts on success
                 if (typeof clearLoginAttempts === 'function') clearLoginAttempts();
 
-                if (res.requires_2fa) {
-                    window.location.href = 'mfa.html';
-                } else {
-                    window.location.href = 'dashboard.html';
-                }
+                // Redirect to MFA verification page to enter the OTP
+                window.location.href = 'mfa.html';
             } catch (err) {
                 // A07: Record failed attempt
                 if (typeof recordLoginAttempt === 'function') {
@@ -270,15 +263,15 @@
                     if (result.locked) {
                         errorMsg.textContent = 'Too many failed attempts. You have been locked out for 15 minutes.';
                     } else {
-                        errorMsg.textContent = `${err.message || 'Login failed.'} (${result.attemptsLeft} attempts remaining)`;
+                        errorMsg.textContent = `${err.message || 'Failed to send OTP.'} (${result.attemptsLeft} attempts remaining)`;
                     }
                 } else {
-                    errorMsg.textContent = err.message || 'Login failed. Please try again.';
+                    errorMsg.textContent = err.message || 'Failed to send OTP. Please try again.';
                 }
                 
                 errorMsg.classList.add('show');
                 loginBtn.disabled = false;
-                loginBtn.textContent = 'Login';
+                loginBtn.textContent = 'Send OTP';
             }
         });
     </script>
