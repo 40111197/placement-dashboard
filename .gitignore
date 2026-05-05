@@ -1,4 +1,3 @@
 .DS_Store
 .vscode/
-config.js
 placement_db.sqlite
