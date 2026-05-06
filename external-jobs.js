@@ -42,14 +42,9 @@ async function fetchJobs() {
             if (error) throw error;
             
             currentJobs = data || [];
-            
-            // Only show simulated data if DB has zero jobs
-            if (currentJobs.length === 0) {
-                currentJobs = getSimulatedData();
-            }
         } else {
-            // Supabase not ready, show simulated data
-            currentJobs = getSimulatedData();
+            console.error("Supabase client not initialized.");
+            currentJobs = [];
         }
 
         renderJobs(currentJobs);
@@ -57,8 +52,7 @@ async function fetchJobs() {
 
     } catch (e) {
         console.error("OSINT Fetch Error:", e);
-        // Fallback to simulated data on any error
-        currentJobs = getSimulatedData();
+        currentJobs = [];
         renderJobs(currentJobs);
         updateStats();
         
@@ -67,11 +61,28 @@ async function fetchJobs() {
             grid.insertAdjacentHTML('afterbegin', `<div class="error-state" style="grid-column:1/-1;padding:15px;background:rgba(245,158,11,0.1);border-radius:8px;color:var(--accent-orange);margin-bottom:20px;border:1px solid rgba(245,158,11,0.2);display:flex;align-items:center;gap:12px;">
                 <i class="bi bi-exclamation-triangle" style="font-size:1.2rem;"></i> 
                 <div>
-                    <strong>Intelligence Feed Offline:</strong> Connecting to secondary cache. Showing simulated opportunities.
+                    <strong>Intelligence Feed Offline:</strong> Could not connect to database.
                 </div>
             </div>`);
         }
     }
+}
+
+// Inject styles for deadline color coding
+if (!document.getElementById('deadlineStyles')) {
+    const style = document.createElement('style');
+    style.id = 'deadlineStyles';
+    style.innerHTML = `
+        .job-card.closing-soon { border-left: 4px solid #ef4444 !important; background: linear-gradient(145deg, rgba(239,68,68,0.05) 0%, rgba(30,41,59,0.5) 100%) !important; }
+        .job-card.closing-soon .job-title { color: #fca5a5 !important; }
+        .job-card.closing-soon .deadline-tag { color: #ef4444; font-weight: bold; background: rgba(239,68,68,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
+        
+        .job-card.expired { border-left: 4px solid #64748b !important; opacity: 0.65; background: #1e293b !important; filter: grayscale(50%); }
+        .job-card.expired .job-title { color: #94a3b8 !important; }
+        .job-card.expired .deadline-tag { color: #64748b; background: rgba(100,116,139,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
+        .job-card.expired .btn-primary { background: #475569 !important; border-color: #475569 !important; pointer-events: none; }
+    `;
+    document.head.appendChild(style);
 }
 
 // RENDER JOB CARDS
@@ -80,28 +91,70 @@ function renderJobs(jobs) {
     const empty = document.getElementById('emptyState');
     
     // Search filtering (local client-side)
-    const filtered = jobs.filter(j => {
-        const searchText = (j.title + j.company + j.description).toLowerCase();
+    let filtered = jobs.filter(j => {
+        const searchText = (j.title + j.company + (j.description || "")).toLowerCase();
         return searchText.includes(filters.search.toLowerCase());
     });
 
-    if (filtered.length === 0) {
+    // 1. Enforce max 15 jobs per domain
+    const domainCounts = {};
+    filtered = filtered.filter(j => {
+        domainCounts[j.domain] = (domainCounts[j.domain] || 0) + 1;
+        return domainCounts[j.domain] <= 15;
+    });
+
+    // 2. Categorize by Deadline
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const threeDaysFromNow = new Date();
+    threeDaysFromNow.setDate(today.getDate() + 3);
+
+    const expiredJobs = [];
+    const closingSoonJobs = [];
+    const normalJobs = [];
+
+    filtered.forEach(j => {
+        if (j.deadline) {
+            const d = new Date(j.deadline);
+            if (d < today) expiredJobs.push(j);
+            else if (d <= threeDaysFromNow) closingSoonJobs.push(j);
+            else normalJobs.push(j);
+        } else {
+            normalJobs.push(j);
+        }
+    });
+
+    // 3. Enforce exactly 20 max for each special category
+    const cappedClosingSoon = closingSoonJobs.slice(0, 20);
+    const cappedExpired = expiredJobs.slice(0, 20);
+
+    // Combine them for display (Closing soon at top, normal, expired at bottom)
+    const displayList = [...cappedClosingSoon, ...normalJobs, ...cappedExpired];
+
+    if (displayList.length === 0) {
         grid.innerHTML = '';
         empty.style.display = 'flex';
         return;
     }
 
     empty.style.display = 'none';
-    grid.innerHTML = filtered.map(job => {
+    grid.innerHTML = displayList.map(job => {
         const isGovt = job.platform === 'Govt Portal';
+        
+        let expireClass = '';
+        if (cappedExpired.includes(job)) expireClass = 'expired';
+        else if (cappedClosingSoon.includes(job)) expireClass = 'closing-soon';
+
+        const cardClass = isGovt ? `job-card govt-card ${expireClass}` : `job-card ${expireClass}`;
         const govtBadge = isGovt ? `<span class="govt-badge"><i class="bi bi-bank"></i> Govt</span>` : '';
-        const cardClass = isGovt ? 'job-card govt-card' : 'job-card';
         const platformTag = isGovt
             ? `<span class="platform-tag govt-platform-tag"><i class="bi bi-bank"></i> ${job.platform}</span>`
             : `<span class="platform-tag">${job.platform}</span>`;
 
+        const deadlineHtml = job.deadline ? `<span class="deadline-tag"><i class="bi bi-hourglass-bottom"></i> Apply by: ${formatDate(job.deadline)}</span>` : '';
+
         return `
-        <div class="${cardClass}" onclick="window.open('${job.apply_link}', '_blank')">
+        <div class="${cardClass}" onclick="${expireClass === 'expired' ? '' : `window.open('${job.apply_link}', '_blank')`}">
             <div class="job-card-header">
                 <div class="company-logo${isGovt ? ' govt-logo' : ''}">${job.company[0]}</div>
                 ${platformTag}
@@ -110,17 +163,18 @@ function renderJobs(jobs) {
                 <h3 class="job-title">${job.title} ${govtBadge}</h3>
                 <div class="job-company">${job.company}</div>
                 <div class="job-meta">
-                    <span><i class="bi bi-geo-alt"></i> ${job.location || 'Remote'}</span>
+                    <span><i class="bi bi-geo-alt"></i> ${job.location || 'India'}</span>
                     <span><i class="bi bi-clock"></i> ${job.job_type}</span>
                 </div>
                 <div class="job-tags">
                     <span class="tag domain">${job.domain}</span>
                     <span class="tag">${job.experience}</span>
+                    ${deadlineHtml}
                 </div>
             </div>
             <div class="card-footer">
                 <span class="posted-date">${formatDate(job.created_at)}</span>
-                <button class="btn-primary btn-sm${isGovt ? ' btn-govt' : ''}">Apply <i class="bi bi-box-arrow-up-right"></i></button>
+                <button class="btn-primary btn-sm${isGovt ? ' btn-govt' : ''}">${expireClass === 'expired' ? 'Expired' : 'Apply <i class="bi bi-box-arrow-up-right"></i>'}</button>
             </div>
         </div>
     `;
@@ -196,21 +250,21 @@ function setupEventListeners() {
         btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Intelligence Gathering...';
         
         try {
-            // 1. Try to trigger backend scrape (best effort)
-            try {
-                const res = await fetch('/api/jobs/scrape', { method: 'POST' });
-                if (res.ok) {
-                    const result = await res.json();
-                } else {
-                    console.warn(`Scraper not available (${res.status}). Fetching from DB directly.`);
-                }
-            } catch (scrapeErr) {
-                console.warn('Scraper unreachable. Fetching from DB directly.', scrapeErr);
+            // Call the local Python scraper server
+            const res = await fetch('http://localhost:3000/api/jobs/scrape', { method: 'POST' });
+            if (!res.ok) {
+                console.error("Scraper server returned an error.");
+                alert("Scraper service error or unreachable. Is scraper_server.py running on port 3000?");
+            } else {
+                console.log("Scraping complete!");
             }
             
-            // 2. Always fetch fresh data from Supabase regardless
+            // Always fetch fresh data from Supabase regardless to update UI
             await fetchJobs();
             
+        } catch (e) {
+            console.error("Failed to connect to scraper server", e);
+            alert("Could not connect to the local scraper service. Ensure `python3 scraper_server.py` is running in your terminal.");
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalHtml;
@@ -225,40 +279,4 @@ function formatDate(isoString) {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-function getSimulatedData() {
-    return [
-        {
-            title: "Cyber Security Intern (SOC/SIEM)",
-            company: "TechGuard Defense",
-            platform: "LinkedIn",
-            domain: "Cyber Security",
-            location: "Remote",
-            job_type: "Internship",
-            experience: "Freshers",
-            apply_link: "#",
-            created_at: new Date().toISOString()
-        },
-        {
-            title: "Trainee Crime Analyst",
-            company: "Forensic Services India",
-            platform: "Internshala",
-            domain: "Criminology",
-            location: "Bangalore",
-            job_type: "Fresher",
-            experience: "0-1 years",
-            apply_link: "#",
-            created_at: new Date().toISOString()
-        },
-        {
-            title: "Digital Forensics Researcher",
-            company: "Global Intelligence Agency",
-            platform: "Indeed",
-            domain: "Digital Forensics",
-            location: "New Delhi",
-            job_type: "Internship",
-            experience: "Freshers",
-            apply_link: "#",
-            created_at: new Date().toISOString()
-        }
-    ];
-}
+

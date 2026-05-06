@@ -514,23 +514,26 @@ function setupSettingsNav() {
 async function updateProfile() {
     const email = document.getElementById('email');
     const phone = document.getElementById('phone');
+    const firstName = document.getElementById('firstName');
+    const lastName = document.getElementById('lastName');
 
     if (!email || !phone) return;
     if (!email.value) { alert('Email is required'); return; }
 
     const alertEl = document.getElementById('profileAlert');
     try {
-        const result = await updateAdminProfile({ email: email.value, mobile: phone.value });
+        const payload = { 
+            email: email.value, 
+            mobile: phone.value,
+            firstName: firstName ? firstName.value : '',
+            lastName: lastName ? lastName.value : ''
+        };
+        const result = await updateAdminProfile(payload);
         if (alertEl) {
-            alertEl.textContent = '✓ Profile updated! OTPs will now be sent to the new email/mobile.';
+            alertEl.textContent = '✓ Profile updated!';
             alertEl.classList.add('show');
             setTimeout(() => alertEl.classList.remove('show'), 4000);
         }
-        // Update stored user object
-        const user = JSON.parse(localStorage.getItem('pd_user') || '{}');
-        user.email  = email.value;
-        user.mobile = phone.value;
-        localStorage.setItem('pd_user', JSON.stringify(user));
     } catch (err) {
         alert('Failed to update profile: ' + err.message);
     }
@@ -880,32 +883,64 @@ function openDeleteAccount() {
 // --- Settings Data Loader ---
 async function loadAdminProfileData() {
     try {
-        const profile = await getAdminProfile();
+        const userStr = localStorage.getItem('pd_user');
+        if (!userStr) return;
+        const localUser = JSON.parse(userStr);
+        
+        // Fetch fresh profile from users table
+        let profile = localUser;
+        if (window._sb && localUser.id) {
+            const { data, error } = await _sb.from('users').select('*').eq('id', localUser.id).single();
+            if (!error && data) {
+                profile = { ...localUser, ...data };
+                localStorage.setItem('pd_user', JSON.stringify(profile)); // keep session synced
+            }
+        }
+        
         const emailEl = document.getElementById('email');
         const phoneEl = document.getElementById('phone');
         const firstEl = document.getElementById('firstName');
         const lastEl  = document.getElementById('lastName');
+        
         if (emailEl) emailEl.value = profile.email || '';
         if (phoneEl) phoneEl.value = profile.mobile || '';
         const nameParts = (profile.username || '').split(' ');
         if (firstEl) firstEl.value = nameParts[0] || profile.username || '';
         if (lastEl)  lastEl.value  = nameParts.slice(1).join(' ') || '';
 
-        // Update profile header
-        document.querySelectorAll('.profile-info h2').forEach(el => el.textContent = profile.username || 'Admin');
-        document.querySelectorAll('.profile-info p:nth-child(3)').forEach(el => el.textContent = profile.email || '');
+        // Update profile header text
+        document.querySelectorAll('.profile-info h2').forEach(el => el.textContent = profile.username || 'User');
+        
+        // Update the Role and Email <p> tags
+        const pTags = document.querySelectorAll('.profile-info p');
+        if (pTags.length >= 2) {
+            const roleStr = profile.role || 'user';
+            pTags[0].textContent = roleStr.charAt(0).toUpperCase() + roleStr.slice(1) + ' User'; // Role
+            pTags[1].textContent = profile.email || 'No email provided'; // Email
+        }
+
+        // Update avatars
         document.querySelectorAll('.profile-avatar, .user-profile .avatar').forEach(el => {
-            el.textContent = (profile.username || 'A').charAt(0).toUpperCase();
+            el.textContent = (profile.username || 'U').charAt(0).toUpperCase();
+        });
+        
+        // Ensure sidebar name stays strictly in sync
+        const sidebarName = document.querySelector('.user-profile .name');
+        if (sidebarName) sidebarName.textContent = profile.username || profile.email || 'User';
+        
+        // Update read-only fields if they exist
+        const roleInputs = document.querySelectorAll('input[value="Administrator"]');
+        roleInputs.forEach(el => {
+            if (el.disabled) {
+                const roleStr = profile.role || 'user';
+                el.value = roleStr.charAt(0).toUpperCase() + roleStr.slice(1);
+            }
         });
     } catch (e) {
-        // Fallback to localStorage
-        const user = JSON.parse(localStorage.getItem('pd_user') || '{}');
-        const emailEl = document.getElementById('email');
-        const phoneEl = document.getElementById('phone');
-        if (emailEl) emailEl.value = user.email || '';
-        if (phoneEl) phoneEl.value = user.mobile || '';
+        console.error('Failed to load profile data', e);
     }
 }
+
 
 // ===== SIDEBAR TOGGLE FUNCTIONALITY =====
 

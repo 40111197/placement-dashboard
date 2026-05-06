@@ -22,6 +22,7 @@
             text-overflow: ellipsis;
         }
     </style>
+    <script src="auth-guard.js"></script>
 </head>
 
 <body>
@@ -54,6 +55,9 @@
                     <div class="name">CD PUDUCHERRY CAMPUS</div>
                     <div class="role">Admin</div>
                 </div>
+                <button id="logoutBtn" class="logout-btn" title="Logout">
+                    <i class="bi bi-box-arrow-right"></i>
+                </button>
             </div>
         </div>
     </aside>
@@ -72,6 +76,9 @@
                     onclick="document.getElementById('importInternshipModal').style.display='flex'"
                     style="width: auto; padding: 10px 15px;">
                     <i class="bi bi-file-earmark-excel"></i> Import
+                </button>
+                <button class="select-unified" onclick="downloadTemplate('internships')" style="width: auto; padding: 10px 15px;">
+                    <i class="bi bi-file-earmark-arrow-down"></i> Template
                 </button>
                 <button class="select-unified" onclick="exportData('internships')"
                     style="width: auto; padding: 10px 15px;">
@@ -341,12 +348,12 @@
     <div id="importInternshipModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Import Internships from Excel</h2>
+                <h2>Import Internships from CSV</h2>
                 <button class="close-modal"
                     onclick="document.getElementById('importInternshipModal').style.display='none'">&times;</button>
             </div>
             <div style="padding: 20px;">
-                <p style="margin-bottom: 15px; opacity: 0.8; font-size: 14px;">Upload an Excel file (.xlsx or .xls)
+                <p style="margin-bottom: 15px; opacity: 0.8; font-size: 14px;">Upload a CSV file (.csv)
                     with headers:<br>
                     <strong>Year, Enrolment No., Programme, Gender, Internship Place, Internship Place 02, Duration,
                         City, Type of Organization</strong>
@@ -355,10 +362,11 @@
                     <div id="importInternError" style="color:#f87171;font-size:13px;margin-bottom:10px;display:none;">
                     </div>
                     <div class="form-group">
-                        <input type="file" id="importInternFile" accept=".xlsx, .xls" required
+                        <input type="file" id="importInternFile" accept=".csv" required
                             style="border: 1px dashed #555; padding: 20px; width: 100%; border-radius: 8px; color: white;">
                     </div>
                     <div class="modal-buttons" style="margin-top: 20px;">
+                        <button type="button" class="btn btn-secondary" style="margin-right: 10px;" onclick="this.closest('.modal-overlay').style.display='none'">Cancel</button>
                         <button type="submit" class="btn btn-primary" id="importInternSubmitBtn">Start
                             Import</button>
                     </div>
@@ -373,8 +381,7 @@
         </div>
     </div>
     <script src="device-tracker.js?v=101"></script>
-    <script src="auth-guard.js?v=3"></script>
-    <!-- CDN: Supabase JS -->
+<!-- CDN: Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- CDN: SheetJS for Excel import/export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>

@@ -22,6 +22,7 @@
             border-radius: 12px;
         }
     </style>
+    <script src="auth-guard.js"></script>
 </head>
 
 <body>
@@ -54,6 +55,9 @@
                     <div class="name">CD PUDUCHERRY CAMPUS</div>
                     <div class="role">Admin</div>
                 </div>
+                <button id="logoutBtn" class="logout-btn" title="Logout">
+                    <i class="bi bi-box-arrow-right"></i>
+                </button>
             </div>
         </div>
     </aside>
@@ -200,8 +204,7 @@
         </div>
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script src="device-tracker.js?v=101"></script>
-        <script src="auth-guard.js?v=3"></script>
-        <!-- CDN: Supabase JS -->
+<!-- CDN: Supabase JS -->
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
         <!-- CDN: SheetJS for Excel import/export -->
         <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>

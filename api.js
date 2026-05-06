@@ -75,23 +75,45 @@ async function apiLoginWithPassword(username, password) {
 }
 
 async function apiSendOtp(email) {
-    // 1. Trigger Supabase to send a real OTP to the email
-    const { data, error } = await _sb.auth.signInWithOtp({
-        email: email,
-        options: {
-            // Do NOT create users automatically. 
-            // Users MUST be created manually in the Supabase Dashboard.
-            shouldCreateUser: false 
-        }
-    });
-
-    if (error) {
-        // If signups are disabled and the email is not registered, it will throw an error here.
-        throw new Error(error.message || 'Unauthorized email address or failed to send OTP.');
+    // 1. Verify the user exists in the users table
+    const { data: user, error: userError } = await _sb
+        .from('users')
+        .select('id, email')
+        .eq('email', email)
+        .single();
+        
+    if (userError || !user) {
+        throw new Error('Unauthorized email address or user not found.');
     }
 
-    // 2. Store the email temporarily for the verification step
+    // 2. Generate a 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry_time = Math.floor(Date.now() / 1000) + 300; // 5 minutes in seconds (matches int8 usually)
+
+    // 3. Upsert into otps table
+    // Since there's no native "upsert by user_id" without knowing the constraint, 
+    // we try to update first, if no rows updated, we insert.
+    // Or if user_id is the primary key/unique, .upsert works. Assuming user_id is unique:
+    const { error: otpError } = await _sb
+        .from('otps')
+        .upsert({ 
+            user_id: user.id, 
+            email_otp: otp, 
+            expiry_time: expiry_time 
+        }, { onConflict: 'user_id' });
+
+    if (otpError) {
+        console.error("OTP Insert Error:", otpError);
+        throw new Error('Failed to generate OTP.');
+    }
+
+    // 4. Store the email temporarily for the verification step
     localStorage.setItem('mfa_pending_email', email);
+    
+    // TEMPORARY: Log the OTP to the console so the user can test locally
+    // since the frontend cannot send the email without an edge function.
+    console.log("%c[DEV] Generated OTP: " + otp, "color: yellow; font-size: 16px; background: #222; padding: 5px;");
+    
     return { success: true };
 }
 
@@ -190,7 +212,7 @@ async function importStudents(fileOrFormData) {
     const file = fileOrFormData instanceof File ? fileOrFormData
         : (fileOrFormData instanceof FormData ? fileOrFormData.get('file') : null);
     if (!file) throw new Error('No file provided for import.');
-    const rows = await parseExcelFile(file, 'students');
+    const rows = await parseCsvFile(file, 'students');
     if (!rows.length) throw new Error('No valid rows found in file.');
     const { data, error } = await _sb.from('students').upsert(rows, { onConflict: 'enrollment_number' }).select();
     sbCheck(error, 'importStudents');
@@ -235,7 +257,7 @@ async function importCompanies(fileOrFormData) {
     const file = fileOrFormData instanceof File ? fileOrFormData
         : (fileOrFormData instanceof FormData ? fileOrFormData.get('file') : null);
     if (!file) throw new Error('No file provided.');
-    const rows = await parseExcelFile(file, 'companies');
+    const rows = await parseCsvFile(file, 'companies');
     if (!rows.length) throw new Error('No valid rows found.');
     const { data, error } = await _sb.from('companies').upsert(rows, { onConflict: 'id' }).select();
     sbCheck(error, 'importCompanies');
@@ -379,8 +401,8 @@ async function importPlacements(fileOrFormData) {
     const file = fileOrFormData instanceof File ? fileOrFormData
         : (fileOrFormData instanceof FormData ? fileOrFormData.get('file') : null);
     if (!file) throw new Error('No file provided.');
-    const rows = await parseExcelFile(file, 'placements');
-    if (!rows.length) throw new Error('No valid rows found in file. Check that your Excel headers match: Enrolment No., Company Name, Date, Salary (LPA), Status');
+    const rows = await parseCsvFile(file, 'placements');
+    if (!rows.length) throw new Error('No valid rows found in file. Check that your CSV headers match: Enrolment No., Company Name, Date, Salary (LPA), Status');
 
     // Smart Replacement: Delete old placements for these students to prevent duplicates
     const enrollmentNumbers = [...new Set(rows.map(r => r.enrollment_number))];
@@ -446,8 +468,8 @@ async function importInternships(fileOrFormData) {
     const file = fileOrFormData instanceof File ? fileOrFormData
         : (fileOrFormData instanceof FormData ? fileOrFormData.get('file') : null);
     if (!file) throw new Error('No file provided.');
-    const rows = await parseExcelFile(file, 'internships');
-    if (!rows.length) throw new Error('No valid rows found in file. Check that your Excel headers match: Year, Enrolment No., Programme, Gender, Internship Place, Internship Place 02, Type of Organization');
+    const rows = await parseCsvFile(file, 'internships');
+    if (!rows.length) throw new Error('No valid rows found in file. Check that your CSV headers match: Year, Enrolment No., Programme, Gender, Internship Place, Internship Place 02, Type of Organization');
 
     // Smart Replacement: Delete old internships for these students
     const enrollmentNumbers = [...new Set(rows.map(r => r.enrollment_number))];
@@ -494,7 +516,7 @@ async function importFieldVisits(fileOrFormData) {
     const file = fileOrFormData instanceof File ? fileOrFormData
         : (fileOrFormData instanceof FormData ? fileOrFormData.get('file') : null);
     if (!file) throw new Error('No file provided.');
-    const rows = await parseExcelFile(file, 'field_visited');
+    const rows = await parseCsvFile(file, 'field_visited');
     if (!rows.length) throw new Error('No valid rows found in file.');
 
     // For Field Visits, we insert all new rows (no specific student conflict)
@@ -535,7 +557,7 @@ async function importIndustrialVisits(fileOrFormData) {
     const file = fileOrFormData instanceof File ? fileOrFormData
         : (fileOrFormData instanceof FormData ? fileOrFormData.get('file') : null);
     if (!file) throw new Error('No file provided.');
-    const rows = await parseExcelFile(file, 'industrial_visited');
+    const rows = await parseCsvFile(file, 'industrial_visited');
     if (!rows.length) throw new Error('No valid rows found in file.');
     const { data, error } = await _sb.from('industrial_visits').insert(rows).select();
     sbCheck(error, 'importIndustrialVisits');
@@ -752,22 +774,30 @@ async function getSalaryDist() {
 }
 
 // ─── ADMIN PROFILE ────────────────────────────────────────────────────────────
-async function getAdminProfile() {
-    const { data, error } = await _sb.from('settings').select('admin_username,admin_email,admin_mobile,two_factor_enabled').limit(1).single();
-    sbCheck(error, 'getAdminProfile');
-    return { username: data.admin_username, email: data.admin_email, mobile: data.admin_mobile, two_factor_enabled: data.two_factor_enabled };
-}
 
 async function updateAdminProfile(payload) {
+    const userStr = localStorage.getItem('pd_user');
+    if (!userStr) throw new Error('Not logged in');
+    const user = JSON.parse(userStr);
+    
     const updates = {};
-    if (payload.email) updates.admin_email = payload.email;
-    if (payload.mobile) updates.admin_mobile = payload.mobile;
-    const { data, error } = await _sb.from('settings').update(updates).eq('id', 1).select().single();
-    sbCheck(error, 'updateAdminProfile');
-    const user = getUser() || {};
-    if (payload.email) user.email = payload.email;
-    if (payload.mobile) user.mobile = payload.mobile;
+    if (payload.email) updates.email = payload.email;
+    if (payload.mobile) updates.mobile = payload.mobile;
+    if (payload.firstName || payload.lastName) {
+        const first = payload.firstName || user.username.split(' ')[0];
+        const last = payload.lastName || user.username.split(' ').slice(1).join(' ');
+        updates.username = `${first} ${last}`.trim();
+    }
+    
+    const { data, error } = await _sb.from('users').update(updates).eq('id', user.id).select().single();
+    sbCheck(error, 'updateUserProfile');
+    
+    // Update local storage
+    if (updates.email) user.email = updates.email;
+    if (updates.mobile) user.mobile = updates.mobile;
+    if (updates.username) user.username = updates.username;
     saveUser(user);
+    
     return data;
 }
 
@@ -795,7 +825,39 @@ async function get2faStatus() {
     return { enabled: data.two_factor_enabled };
 }
 
+
+// ─── DOWNLOAD CSV TEMPLATES ──────────────────────────────────────────────────
+function downloadTemplate(type) {
+    let filename = '';
+    
+    if (type === 'students') {
+        filename = 'students_temp.csv';
+    } else if (type === 'companies') {
+        filename = 'companies_temp.csv';
+    } else if (type === 'placements') {
+        filename = 'placements_temp.csv';
+    } else if (type === 'internships') {
+        filename = 'internships_temp.csv';
+    } else if (type === 'field_visits') {
+        filename = 'field_visits_temp.csv';
+    } else if (type === 'industrial_visits') {
+        filename = 'industrial_visits_temp.csv';
+    } else {
+        alert('Unknown template type');
+        return;
+    }
+
+    const link = document.createElement('a');
+    link.href = filename;
+    link.download = filename;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
 // ─── EXPORT TO EXCEL (client-side via SheetJS) ────────────────────────────────
+
 async function exportData(type) {
     if (typeof XLSX === 'undefined') {
         alert('SheetJS library not loaded. Please check your internet connection.');
@@ -830,8 +892,8 @@ async function exportData(type) {
     }
 }
 
-// ─── EXCEL PARSER (client-side via SheetJS) ───────────────────────────────────
-async function parseExcelFile(file, type) {
+// ─── CSV/EXCEL PARSER (client-side via SheetJS) ───────────────────────────────────
+async function parseCsvFile(file, type) {
     return new Promise((resolve, reject) => {
         if (typeof XLSX === 'undefined') {
             reject(new Error('SheetJS (xlsx) library not loaded.'));
@@ -978,22 +1040,4 @@ async function parseExcelFile(file, type) {
     });
 }
 
-// ─── LOAD ADMIN PROFILE IN SETTINGS ──────────────────────────────────────────
-async function loadAdminProfileData() {
-    try {
-        const profile = await getAdminProfile();
-        const emailEl = document.getElementById('email');
-        const phoneEl = document.getElementById('phone');
-        const usernameEl = document.getElementById('username') || document.getElementById('adminUsername');
-        if (emailEl) emailEl.value = profile.email || '';
-        if (phoneEl) phoneEl.value = profile.mobile || '';
-        if (usernameEl) usernameEl.value = profile.username || 'admin';
-        // Populate sidebar
-        const user = getUser() || {};
-        user.email = profile.email;
-        user.mobile = profile.mobile;
-        saveUser(user);
-    } catch (e) {
-        console.error('Failed to load admin profile', e);
-    }
-}
+// Removed legacy loadAdminProfileData() - now handled in script.js to support multiple users

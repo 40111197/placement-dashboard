@@ -58,6 +58,9 @@
                     <div class="name">CD PUDUCHERRY CAMPUS</div>
                     <div class="role">Admin</div>
                 </div>
+                <button id="logoutBtn" class="logout-btn" title="Logout">
+                    <i class="bi bi-box-arrow-right"></i>
+                </button>
             </div>
         </div>
     </aside>
@@ -392,7 +395,7 @@
                             sortedYears.forEach(y => {
                                 const opt = document.createElement('option');
                                 opt.value = y;
-                                opt.textContent = y;
+                                opt.textContent = y + " to " + (y + 1);
                                 select.appendChild(opt);
                             });
                         }
